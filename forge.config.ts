@@ -16,7 +16,15 @@ const config: ForgeConfig = {
     asar: true,
   },
   rebuildConfig: {},
-  makers: [new MakerSquirrel({}), new MakerZIP({}, ['darwin']), new MakerRpm({}), new MakerDeb({})],
+  makers: [new MakerSquirrel({}), new MakerZIP({}, ['darwin']), {
+    name: '@electron-forge/maker-deb',
+    config: {
+      options: {
+        maintainer: 'Joe Bloggs',
+        homepage: 'https://example.com'
+      }
+    }
+  }, new MakerDeb({})],
   plugins: [
     new AutoUnpackNativesPlugin({}),
     new WebpackPlugin({

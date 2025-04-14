@@ -20,8 +20,8 @@ const config: ForgeConfig = {
     name: '@electron-forge/maker-deb',
     config: {
       options: {
-        maintainer: 'Joe Bloggs',
-        homepage: 'https://example.com'
+        maintainer: 'Yadnyesh Kolte',
+        homepage: 'https://yadnyeshkolte.github.io',
       }
     }
   }, new MakerDeb({})],

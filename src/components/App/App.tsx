@@ -6,7 +6,7 @@ const App: React.FC = () => {
     return (
         <div className="app-container">
             <div className="app-header">
-                <h1>Front Qode IDE</h1>
+                <h1>Yadnyesh Front Qode IDE</h1>
             </div>
             <div className="app-content">z
                 <div className="sidebar">

@@ -2,9 +2,11 @@
 import './index.css';
 import './styles/App.css';
 import './styles/AppInit.css';
+import './styles/AppStarter.css';
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import AppInit from './components/AppInit/AppInit';
+import AppStarter from './components/AppStarter/AppStarter';
 import App from './components/App/App';
 
 // First check if our renderer is loading at all
@@ -16,9 +18,14 @@ const container = document.getElementById('root');
 if (container) {
     const root = createRoot(container);
 
-    // Start with the initialization screen
+    // Flow: AppInit -> AppStarter -> App
     const handleInitComplete = () => {
-        // Render the main app when initialization is complete
+        // Render the starter screen when initialization is complete
+        root.render(React.createElement(AppStarter, { onNewProject: handleNewProject }));
+    };
+
+    const handleNewProject = () => {
+        // Render the main app when "New Project" is clicked
         root.render(React.createElement(App));
     };
 

@@ -2,6 +2,8 @@
 import './index.css';
 import './styles/App.css';
 import './styles/AppInit.css';
+import AppInit from "./components/AppInit/AppInit";
+import App from "./components/App/App";
 
 // First check if our renderer is loading at all
 console.log('👋 Front Qode IDE renderer is loading');

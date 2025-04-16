@@ -1,20 +1,50 @@
 // src/components/AppStarter/AppStarter.tsx
-import React from 'react';
+import React, { useState } from 'react';
 import '../../styles/AppStarter.css';
+import ProjectDialog from '../ProjectDialog/ProjectDialog';
 
 interface AppStarterProps {
-    onNewProject: () => void;
+    onNewProject: (projectPath: string) => void;
 }
 
 const AppStarter: React.FC<AppStarterProps> = ({ onNewProject }) => {
+    const [isProjectDialogOpen, setIsProjectDialogOpen] = useState(false);
+    const [error, setError] = useState('');
+
+    const handleNewProjectClick = () => {
+        setIsProjectDialogOpen(true);
+    };
+
+    const handleProjectDialogClose = () => {
+        setIsProjectDialogOpen(false);
+        setError('');
+    };
+
+    const handleProjectCreate = async (projectName: string) => {
+        try {
+            const result = await window.electronAPI.createProject(projectName);
+
+            if (result.success && result.projectPath) {
+                setIsProjectDialogOpen(false);
+                onNewProject(result.projectPath);
+            } else {
+                throw new Error(result.error || 'Failed to create project');
+            }
+        } catch (err) {
+            setError(err.message);
+        }
+    };
+
     return (
         <div className="app-starter-container">
             <div className="app-starter-content">
                 <h1>Front Qode IDE</h1>
                 <p>Choose an option to get started</p>
 
+                {error && <div className="error-message">{error}</div>}
+
                 <div className="starter-options">
-                    <button className="starter-button" onClick={onNewProject}>
+                    <button className="starter-button" onClick={handleNewProjectClick}>
                         <span className="starter-button-icon">+</span>
                         New Project
                     </button>
@@ -34,6 +64,13 @@ const AppStarter: React.FC<AppStarterProps> = ({ onNewProject }) => {
                         Clone Repository
                     </button>
                 </div>
+
+                <ProjectDialog
+                    isOpen={isProjectDialogOpen}
+                    onClose={handleProjectDialogClose}
+                    onConfirm={handleProjectCreate}
+                    title="Create New Project"
+                />
             </div>
         </div>
     );

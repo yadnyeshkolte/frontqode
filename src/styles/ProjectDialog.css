@@ -1,0 +1,84 @@
+/* src/styles/ProjectDialog.css */
+.project-dialog-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.project-dialog {
+    background-color: #1e1e1e;
+    border-radius: 5px;
+    padding: 20px;
+    width: 400px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+}
+
+.project-dialog h2 {
+    margin-top: 0;
+    color: #e1e1e1;
+    margin-bottom: 20px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    color: #e1e1e1;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #3c3c3c;
+    background-color: #252525;
+    color: #e1e1e1;
+    border-radius: 3px;
+}
+
+.error-message {
+    color: #ff6b6b;
+    font-size: 0.9em;
+    margin-top: 5px;
+}
+
+.dialog-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.cancel-button {
+    background-color: #3c3c3c;
+    color: #e1e1e1;
+    border: none;
+    padding: 8px 15px;
+    cursor: pointer;
+    border-radius: 3px;
+}
+
+.confirm-button {
+    background-color: #0e639c;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    cursor: pointer;
+    border-radius: 3px;
+}
+
+.confirm-button:hover {
+    background-color: #1177bb;
+}
+
+.cancel-button:hover {
+    background-color: #4e4e4e;
+}

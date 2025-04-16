@@ -6,9 +6,15 @@ import CloneRepoDialog from '../CloneRepoDialog/CloneRepoDialog';
 
 interface AppStarterProps {
     onNewProject: (projectPath: string) => void;
+    onOpenProjectClick?: () => void;
+    onCloneRepoClick?: () => void;
 }
 
-const AppStarter: React.FC<AppStarterProps> = ({ onNewProject }) => {
+const AppStarter: React.FC<AppStarterProps> = ({
+                                                   onNewProject,
+                                                   onOpenProjectClick: externalOpenProjectHandler,
+                                                   onCloneRepoClick: externalCloneRepoHandler
+                                               }) => {
     const [isProjectDialogOpen, setIsProjectDialogOpen] = useState(false);
     const [isCloneRepoDialogOpen, setIsCloneRepoDialogOpen] = useState(false);
     const [error, setError] = useState('');
@@ -19,6 +25,13 @@ const AppStarter: React.FC<AppStarterProps> = ({ onNewProject }) => {
     };
 
     const handleOpenProjectClick = async () => {
+        // If external handler is provided, use it
+        if (externalOpenProjectHandler) {
+            externalOpenProjectHandler();
+            return;
+        }
+
+        // Otherwise use the internal implementation
         try {
             setIsLoading(true);
             const result = await window.electronAPI.openProjectDialog();
@@ -36,6 +49,13 @@ const AppStarter: React.FC<AppStarterProps> = ({ onNewProject }) => {
     };
 
     const handleCloneRepoClick = () => {
+        // If external handler is provided, use it
+        if (externalCloneRepoHandler) {
+            externalCloneRepoHandler();
+            return;
+        }
+
+        // Otherwise use internal implementation
         setIsCloneRepoDialogOpen(true);
     };
 

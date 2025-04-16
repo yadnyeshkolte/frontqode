@@ -71,6 +71,31 @@ const App: React.FC<AppProps> = ({ projectPath }) => {
         }
     }, [projectPath]);
 
+    // Set up menu event listeners
+    useEffect(() => {
+        // Save file handler from menu
+        const handleMenuSaveFile = () => {
+            if (activeFile) {
+                saveFile();
+            }
+        };
+
+        // Handle app-save-file custom event (for menu integration)
+        const handleAppSaveFile = () => {
+            if (activeFile) {
+                saveFile();
+            }
+        };
+
+        // Add event listener for custom event from renderer.ts
+        window.addEventListener('app-save-file', handleAppSaveFile);
+
+        // Clean up event listener
+        return () => {
+            window.removeEventListener('app-save-file', handleAppSaveFile);
+        };
+    }, [activeFile, fileContent]);
+
     const openFile = async (filePath: string) => {
         try {
             // If we have unsaved changes, confirm with user
@@ -155,6 +180,34 @@ const App: React.FC<AppProps> = ({ projectPath }) => {
                 {item.children && renderFileTree(item.children, indent + 1)}
             </React.Fragment>
         ));
+    };
+
+    // Additional menu action handlers
+    const handleFormatDocument = () => {
+        // Placeholder for document formatting functionality
+        // In a real implementation, this would format the active file content
+        console.log('Format document action triggered');
+
+        // Simple indentation-based formatting for demonstration
+        if (activeFile && fileContent) {
+            try {
+                // Very basic formatting - just for demonstration
+                // A real formatter would use language-specific logic
+                let formatted = fileContent;
+
+                // For now, just log that formatting was requested
+                console.log('Formatting requested for:', activeFile);
+
+                // In the future, implement real formatting here
+            } catch (error) {
+                console.error('Error formatting document:', error);
+            }
+        }
+    };
+
+    const handleCommentSelection = () => {
+        // Placeholder for comment/uncomment functionality
+        console.log('Comment selection action triggered');
     };
 
     return (

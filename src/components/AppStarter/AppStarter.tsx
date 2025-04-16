@@ -15,6 +15,20 @@ const AppStarter: React.FC<AppStarterProps> = ({ onNewProject }) => {
         setIsProjectDialogOpen(true);
     };
 
+    const handleOpenProjectClick = async () => {
+        try {
+            const result = await window.electronAPI.openProjectDialog();
+
+            if (result.success && result.projectPath) {
+                onNewProject(result.projectPath);
+            } else if (result.error) {
+                setError(result.error);
+            }
+        } catch (err) {
+            setError(err.message);
+        }
+    };
+
     const handleProjectDialogClose = () => {
         setIsProjectDialogOpen(false);
         setError('');
@@ -54,7 +68,7 @@ const AppStarter: React.FC<AppStarterProps> = ({ onNewProject }) => {
                         Customize
                     </button>
 
-                    <button className="starter-button starter-button-disabled">
+                    <button className="starter-button" onClick={handleOpenProjectClick}>
                         <span className="starter-button-icon">📂</span>
                         Open Project
                     </button>

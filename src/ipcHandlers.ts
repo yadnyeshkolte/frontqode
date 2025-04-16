@@ -15,11 +15,31 @@ export const setupIpcHandlers = () => {
         }
     });
 
+    // Open project dialog
+    ipcMain.handle('open-project-dialog', async () => {
+        try {
+            const projectPath = fileSystemService.openProjectDialog();
+            return { success: true, projectPath };
+        } catch (error) {
+            return { success: false, error: error.message };
+        }
+    });
+
     // List all projects
     ipcMain.handle('list-projects', async () => {
         try {
             const projects = fileSystemService.listProjects();
             return { success: true, projects };
+        } catch (error) {
+            return { success: false, error: error.message };
+        }
+    });
+
+    // Read directory contents
+    ipcMain.handle('read-directory', async (_, dirPath: string) => {
+        try {
+            const contents = fileSystemService.readDirectory(dirPath);
+            return { success: true, contents };
         } catch (error) {
             return { success: false, error: error.message };
         }

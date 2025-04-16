@@ -1,5 +1,3 @@
-// See the Electron documentation for details on how to use preload scripts:
-// https://www.electronjs.org/docs/latest/tutorial/process-model#preload-scripts
 // src/preload.ts
 import { contextBridge, ipcRenderer } from 'electron';
 
@@ -8,7 +6,9 @@ import { contextBridge, ipcRenderer } from 'electron';
 contextBridge.exposeInMainWorld('electronAPI', {
     // Project operations
     createProject: (projectName: string) => ipcRenderer.invoke('create-project', projectName),
+    openProjectDialog: () => ipcRenderer.invoke('open-project-dialog'),
     listProjects: () => ipcRenderer.invoke('list-projects'),
+    readDirectory: (dirPath: string) => ipcRenderer.invoke('read-directory', dirPath),
 
     // File operations
     readFile: (filePath: string) => ipcRenderer.invoke('read-file', filePath),

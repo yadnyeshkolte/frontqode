@@ -1,5 +1,5 @@
 // src/services/FileSystemService.ts
-import { app } from 'electron';
+import { app, dialog } from 'electron';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
@@ -46,6 +46,20 @@ class FileSystemService {
     }
 
     /**
+     * Opens a dialog to select a project directory
+     * @returns The path to the selected directory
+     */
+    openProjectDialog(): string | null {
+        const result = dialog.showOpenDialogSync({
+            properties: ['openDirectory'],
+            title: 'Select Project Folder',
+            buttonLabel: 'Open Project'
+        });
+
+        return result && result.length > 0 ? result[0] : null;
+    }
+
+    /**
      * Lists all projects in the FrontqodeProjects directory
      * @returns An array of project names
      */
@@ -83,6 +97,44 @@ class FileSystemService {
      */
     getProjectsDir(): string {
         return this.projectsDir;
+    }
+
+    /**
+     * Reads a directory and returns its structure
+     * @param dirPath The path to the directory
+     * @returns An array of file tree items
+     */
+    readDirectory(dirPath: string): any[] {
+        const items = fs.readdirSync(dirPath);
+
+        return items.map(item => {
+            const itemPath = path.join(dirPath, item);
+            const isDirectory = fs.statSync(itemPath).isDirectory();
+
+            const fileItem = {
+                name: item,
+                path: itemPath,
+                isDirectory
+            };
+
+            if (isDirectory) {
+                try {
+                    const children = this.readDirectory(itemPath);
+                    return {
+                        ...fileItem,
+                        children
+                    };
+                } catch (error) {
+                    console.error(`Error reading directory ${itemPath}:`, error);
+                    return {
+                        ...fileItem,
+                        children: []
+                    };
+                }
+            }
+
+            return fileItem;
+        });
     }
 }
 

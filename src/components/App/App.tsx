@@ -1,5 +1,5 @@
 // src/components/App/App.tsx
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import '../../styles/App.css';
 import * as path from 'path';
 
@@ -20,38 +20,70 @@ const App: React.FC<AppProps> = ({ projectPath }) => {
     const [activeFile, setActiveFile] = useState<string | null>(null);
     const [fileContent, setFileContent] = useState<string>('');
     const [projectName, setProjectName] = useState<string>('');
+    const [isDirty, setIsDirty] = useState<boolean>(false);
 
+    // Function to load file tree
+    const loadFileTree = async () => {
+        try {
+            const result = await window.electronAPI.readDirectory(projectPath);
+
+            if (result.success && result.contents) {
+                setFileTree([
+                    {
+                        name: path.basename(projectPath),
+                        path: projectPath,
+                        isDirectory: true,
+                        children: result.contents
+                    }
+                ]);
+            }
+        } catch (error) {
+            console.error('Failed to load file tree:', error);
+        }
+    };
+
+    // Load project data when the project path changes
     useEffect(() => {
         if (projectPath) {
             // Extract project name from path
             const name = path.basename(projectPath);
             setProjectName(name);
 
-            // Open readme.md by default
-            const readmePath = path.join(projectPath, 'readme.md');
-            openFile(readmePath);
+            // Load the file tree for the project
+            loadFileTree();
 
-            // Here you would typically load the file tree
-            // For now, let's just create a simple structure
-            setFileTree([
-                {
-                    name: name,
-                    path: projectPath,
-                    isDirectory: true,
-                    children: [
-                        {
-                            name: 'readme.md',
-                            path: readmePath,
-                            isDirectory: false
+            // Look for a readme.md file to open by default
+            const readmePath = path.join(projectPath, 'readme.md');
+            try {
+                // Check if readme.md exists and open it
+                window.electronAPI.readFile(readmePath)
+                    .then(result => {
+                        if (result.success) {
+                            openFile(readmePath);
                         }
-                    ]
-                }
-            ]);
+                    })
+                    .catch(() => {
+                        // No readme.md file found, that's fine
+                    });
+            } catch (error) {
+                console.error('Error checking for readme.md:', error);
+            }
         }
     }, [projectPath]);
 
     const openFile = async (filePath: string) => {
         try {
+            // If we have unsaved changes, confirm with user
+            if (isDirty && activeFile) {
+                const confirmSave = window.confirm(
+                    `You have unsaved changes in ${path.basename(activeFile)}. Save before opening a new file?`
+                );
+
+                if (confirmSave) {
+                    await saveFile();
+                }
+            }
+
             const result = await window.electronAPI.readFile(filePath);
 
             if (result.success && result.content !== undefined) {
@@ -62,6 +94,7 @@ const App: React.FC<AppProps> = ({ projectPath }) => {
 
                 setActiveFile(filePath);
                 setFileContent(result.content);
+                setIsDirty(false);
             }
         } catch (error) {
             console.error('Failed to open file:', error);
@@ -72,7 +105,9 @@ const App: React.FC<AppProps> = ({ projectPath }) => {
         if (activeFile) {
             try {
                 await window.electronAPI.writeFile(activeFile, fileContent);
-                // You could add a saved indicator here
+                setIsDirty(false);
+                // Refresh the file tree after saving to show any new files
+                await loadFileTree();
             } catch (error) {
                 console.error('Failed to save file:', error);
             }
@@ -81,6 +116,30 @@ const App: React.FC<AppProps> = ({ projectPath }) => {
 
     const handleFileContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         setFileContent(e.target.value);
+        setIsDirty(true);
+    };
+
+    const closeFile = (filePath: string) => {
+        // Remove from open files
+        const newOpenFiles = openFiles.filter(file => file !== filePath);
+        setOpenFiles(newOpenFiles);
+
+        // If it was the active file, set a new active file
+        if (activeFile === filePath) {
+            if (newOpenFiles.length > 0) {
+                // Open the first file in the list
+                openFile(newOpenFiles[0]);
+            } else {
+                // No files left open
+                setActiveFile(null);
+                setFileContent('');
+                setIsDirty(false);
+            }
+        }
+    };
+
+    const refreshFileTree = async () => {
+        await loadFileTree();
     };
 
     const renderFileTree = (items: FileTreeItem[], indent = 0) => {
@@ -105,7 +164,16 @@ const App: React.FC<AppProps> = ({ projectPath }) => {
             </div>
             <div className="app-content">
                 <div className="sidebar">
-                    <div className="sidebar-header">Explorer</div>
+                    <div className="sidebar-header">
+                        Explorer
+                        <button
+                            className="refresh-button"
+                            onClick={refreshFileTree}
+                            title="Refresh File Tree"
+                        >
+                            🔄
+                        </button>
+                    </div>
                     <div className="sidebar-content">
                         <ul className="file-tree">
                             {fileTree.length > 0 && renderFileTree(fileTree)}
@@ -118,31 +186,53 @@ const App: React.FC<AppProps> = ({ projectPath }) => {
                             <div
                                 key={file}
                                 className={`tab ${activeFile === file ? 'active' : ''}`}
-                                onClick={() => openFile(file)}
                             >
-                                {path.basename(file)}
+                                <span onClick={() => openFile(file)}>
+                                    {isDirty && activeFile === file ? '* ' : ''}
+                                    {path.basename(file)}
+                                </span>
+                                <span
+                                    className="close-tab"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        closeFile(file);
+                                    }}
+                                >
+                                    ×
+                                </span>
                             </div>
                         ))}
                     </div>
                     <div className="editor-content">
-                        <textarea
-                            value={fileContent}
-                            onChange={handleFileContentChange}
-                            onKeyDown={(e) => {
-                                // Save on Ctrl+S
-                                if (e.ctrlKey && e.key === 's') {
-                                    e.preventDefault();
-                                    saveFile();
-                                }
-                            }}
-                        />
+                        {activeFile ? (
+                            <textarea
+                                value={fileContent}
+                                onChange={handleFileContentChange}
+                                onKeyDown={(e) => {
+                                    // Save on Ctrl+S
+                                    if (e.ctrlKey && e.key === 's') {
+                                        e.preventDefault();
+                                        saveFile();
+                                    }
+                                }}
+                            />
+                        ) : (
+                            <div className="no-file-open">No file open</div>
+                        )}
                     </div>
                 </div>
             </div>
             <div className="status-bar">
-                <div>{activeFile ? `Editing: ${path.basename(activeFile)}` : 'Ready'}</div>
+                <div>
+                    {activeFile
+                        ? `Editing: ${path.basename(activeFile)}${isDirty ? ' (unsaved)' : ''}`
+                        : 'Ready'
+                    }
+                </div>
                 <div>UTF-8</div>
-                <div onClick={saveFile} style={{ cursor: 'pointer' }}>Save (Ctrl+S)</div>
+                <div onClick={saveFile} style={{ cursor: 'pointer' }}>
+                    Save (Ctrl+S)
+                </div>
             </div>
         </div>
     );

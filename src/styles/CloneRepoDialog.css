@@ -1,0 +1,114 @@
+/* src/styles/CloneRepoDialog.css */
+.repo-dialog-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.repo-dialog {
+    background-color: #1e1e1e;
+    border-radius: 6px;
+    padding: 1.5rem;
+    min-width: 500px;
+    max-width: 90%;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+    color: #cccccc;
+}
+
+.repo-dialog h2 {
+    margin-top: 0;
+    margin-bottom: 1.5rem;
+    color: #ffffff;
+    border-bottom: 1px solid #3a3a3a;
+    padding-bottom: 0.5rem;
+}
+
+.repo-dialog p {
+    margin-bottom: 1.5rem;
+    line-height: 1.5;
+}
+
+.form-group {
+    margin-bottom: 1.2rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: bold;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 0.75rem;
+    background-color: #252526;
+    border: 1px solid #3a3a3a;
+    border-radius: 4px;
+    color: #ffffff;
+    font-size: 1rem;
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: #007acc;
+    box-shadow: 0 0 0 2px rgba(0, 122, 204, 0.3);
+}
+
+.form-group small {
+    display: block;
+    margin-top: 0.25rem;
+    color: #999;
+    font-size: 0.8rem;
+}
+
+.error-message {
+    background-color: rgba(255, 70, 70, 0.2);
+    border: 1px solid #ff4646;
+    color: #ff9494;
+    padding: 0.75rem;
+    border-radius: 4px;
+    margin-bottom: 1rem;
+}
+
+.dialog-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    margin-top: 1.5rem;
+}
+
+.cancel-button {
+    padding: 0.5rem 1.25rem;
+    background-color: transparent;
+    border: 1px solid #3a3a3a;
+    color: #cccccc;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+.cancel-button:hover {
+    background-color: #2a2a2a;
+}
+
+.confirm-button {
+    padding: 0.5rem 1.25rem;
+    background-color: #007acc;
+    border: none;
+    color: #ffffff;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: bold;
+}
+
+.confirm-button:hover {
+    background-color: #0088e2;
+}

@@ -10,6 +10,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
     listProjects: () => ipcRenderer.invoke('list-projects'),
     readDirectory: (dirPath: string) => ipcRenderer.invoke('read-directory', dirPath),
 
+    // Git operations
+    isGitInstalled: () => ipcRenderer.invoke('is-git-installed'),
+    cloneRepository: (repoUrl: string, projectName?: string) =>
+        ipcRenderer.invoke('clone-repository', repoUrl, projectName),
+
     // File operations
     readFile: (filePath: string) => ipcRenderer.invoke('read-file', filePath),
     writeFile: (filePath: string, content: string) => ipcRenderer.invoke('write-file', filePath, content),

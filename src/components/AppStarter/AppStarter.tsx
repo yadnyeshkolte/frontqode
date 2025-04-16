@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import '../../styles/AppStarter.css';
 import ProjectDialog from '../ProjectDialog/ProjectDialog';
+import CloneRepoDialog from '../CloneRepoDialog/CloneRepoDialog';
 
 interface AppStarterProps {
     onNewProject: (projectPath: string) => void;
@@ -9,7 +10,9 @@ interface AppStarterProps {
 
 const AppStarter: React.FC<AppStarterProps> = ({ onNewProject }) => {
     const [isProjectDialogOpen, setIsProjectDialogOpen] = useState(false);
+    const [isCloneRepoDialogOpen, setIsCloneRepoDialogOpen] = useState(false);
     const [error, setError] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
 
     const handleNewProjectClick = () => {
         setIsProjectDialogOpen(true);
@@ -17,6 +20,7 @@ const AppStarter: React.FC<AppStarterProps> = ({ onNewProject }) => {
 
     const handleOpenProjectClick = async () => {
         try {
+            setIsLoading(true);
             const result = await window.electronAPI.openProjectDialog();
 
             if (result.success && result.projectPath) {
@@ -26,7 +30,13 @@ const AppStarter: React.FC<AppStarterProps> = ({ onNewProject }) => {
             }
         } catch (err) {
             setError(err.message);
+        } finally {
+            setIsLoading(false);
         }
+    };
+
+    const handleCloneRepoClick = () => {
+        setIsCloneRepoDialogOpen(true);
     };
 
     const handleProjectDialogClose = () => {
@@ -34,8 +44,14 @@ const AppStarter: React.FC<AppStarterProps> = ({ onNewProject }) => {
         setError('');
     };
 
+    const handleCloneRepoDialogClose = () => {
+        setIsCloneRepoDialogOpen(false);
+        setError('');
+    };
+
     const handleProjectCreate = async (projectName: string) => {
         try {
+            setIsLoading(true);
             const result = await window.electronAPI.createProject(projectName);
 
             if (result.success && result.projectPath) {
@@ -46,6 +62,26 @@ const AppStarter: React.FC<AppStarterProps> = ({ onNewProject }) => {
             }
         } catch (err) {
             setError(err.message);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleRepoClone = async (repoUrl: string, projectName: string) => {
+        try {
+            setIsLoading(true);
+            const result = await window.electronAPI.cloneRepository(repoUrl, projectName);
+
+            if (result.success && result.projectPath) {
+                setIsCloneRepoDialogOpen(false);
+                onNewProject(result.projectPath);
+            } else {
+                throw new Error(result.error || 'Failed to clone repository');
+            }
+        } catch (err) {
+            setError(err.message);
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -57,8 +93,19 @@ const AppStarter: React.FC<AppStarterProps> = ({ onNewProject }) => {
 
                 {error && <div className="error-message">{error}</div>}
 
+                {isLoading && (
+                    <div className="loading-indicator">
+                        <div className="spinner"></div>
+                        <p>Processing...</p>
+                    </div>
+                )}
+
                 <div className="starter-options">
-                    <button className="starter-button" onClick={handleNewProjectClick}>
+                    <button
+                        className="starter-button"
+                        onClick={handleNewProjectClick}
+                        disabled={isLoading}
+                    >
                         <span className="starter-button-icon">+</span>
                         New Project
                     </button>
@@ -68,12 +115,20 @@ const AppStarter: React.FC<AppStarterProps> = ({ onNewProject }) => {
                         Customize
                     </button>
 
-                    <button className="starter-button" onClick={handleOpenProjectClick}>
+                    <button
+                        className="starter-button"
+                        onClick={handleOpenProjectClick}
+                        disabled={isLoading}
+                    >
                         <span className="starter-button-icon">📂</span>
                         Open Project
                     </button>
 
-                    <button className="starter-button starter-button-disabled">
+                    <button
+                        className="starter-button"
+                        onClick={handleCloneRepoClick}
+                        disabled={isLoading}
+                    >
                         <span className="starter-button-icon">📥</span>
                         Clone Repository
                     </button>
@@ -84,6 +139,12 @@ const AppStarter: React.FC<AppStarterProps> = ({ onNewProject }) => {
                     onClose={handleProjectDialogClose}
                     onConfirm={handleProjectCreate}
                     title="Create New Project"
+                />
+
+                <CloneRepoDialog
+                    isOpen={isCloneRepoDialogOpen}
+                    onClose={handleCloneRepoDialogClose}
+                    onConfirm={handleRepoClone}
                 />
             </div>
         </div>

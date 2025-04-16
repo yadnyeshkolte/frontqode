@@ -3,6 +3,11 @@ import { app, dialog } from 'electron';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
+import { exec } from 'child_process';
+import { promisify } from 'util';
+
+// Promisify exec for better async handling
+const execAsync = promisify(exec);
 
 class FileSystemService {
     private readonly projectsDir: string;
@@ -135,6 +140,77 @@ class FileSystemService {
 
             return fileItem;
         });
+    }
+
+    /**
+     * Checks if Git is installed
+     * @returns Whether Git is available
+     */
+    async isGitInstalled(): Promise<boolean> {
+        try {
+            await execAsync('git --version');
+            return true;
+        } catch (error) {
+            return false;
+        }
+    }
+
+    /**
+     * Extracts the repository name from a Git URL
+     * @param repoUrl Git repository URL
+     * @returns The repository name
+     */
+    extractRepoName(repoUrl: string): string {
+        // Extract the repo name from the URL (handles both HTTPS and SSH formats)
+        const httpsMatch = repoUrl.match(/\/([^\/]+)\.git$/);
+        const sshMatch = repoUrl.match(/:([^\/]+)\.git$/);
+        const nameMatch = httpsMatch || sshMatch;
+
+        if (nameMatch && nameMatch[1]) {
+            return nameMatch[1];
+        }
+
+        // Fallback - use last part of URL without .git if present
+        const parts = repoUrl.split('/');
+        let lastPart = parts[parts.length - 1];
+
+        if (lastPart.endsWith('.git')) {
+            lastPart = lastPart.slice(0, -4);
+        }
+
+        return lastPart || 'git-project';
+    }
+
+    /**
+     * Clones a Git repository
+     * @param repoUrl The URL of the repository to clone
+     * @param projectName Optional custom name for the project folder
+     * @returns The path to the cloned repository
+     */
+    async cloneRepository(repoUrl: string, projectName?: string): Promise<string> {
+        // Check if Git is installed
+        const gitInstalled = await this.isGitInstalled();
+        if (!gitInstalled) {
+            throw new Error('Git is not installed. Please install Git to use this feature.');
+        }
+
+        // Use provided project name or extract from URL
+        const folderName = projectName || this.extractRepoName(repoUrl);
+        const sanitizedName = folderName.replace(/[^a-zA-Z0-9_-]/g, '_');
+        const projectPath = path.join(this.projectsDir, sanitizedName);
+
+        // Check if the directory already exists
+        if (fs.existsSync(projectPath)) {
+            throw new Error(`Project ${sanitizedName} already exists`);
+        }
+
+        try {
+            // Clone the repository
+            await execAsync(`git clone "${repoUrl}" "${projectPath}"`);
+            return projectPath;
+        } catch (error) {
+            throw new Error(`Failed to clone repository: ${error.message}`);
+        }
     }
 }
 

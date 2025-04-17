@@ -1,5 +1,5 @@
 // src/components/FileExplorer/FileExplorer.tsx
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import * as path from 'path';
 import {
     FileTreeItem,
@@ -16,6 +16,9 @@ interface FileExplorerProps {
 const FileExplorer: React.FC<FileExplorerProps> = ({ projectPath, onFileOpen }) => {
     const [fileTree, setFileTree] = useState<FileTreeItem[]>([]);
     const [searchTerm, setSearchTerm] = useState<string>('');
+    const resizeHandleRef = useRef<HTMLDivElement>(null);
+    const sidebarRef = useRef<HTMLDivElement>(null);
+    const fileExplorerRef = useRef<HTMLDivElement>(null);
 
     // Load file tree on component mount or when project path changes
     useEffect(() => {
@@ -23,6 +26,48 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ projectPath, onFileOpen }) 
             loadFileTree();
         }
     }, [projectPath]);
+
+    // Set up resize event listeners
+    useEffect(() => {
+        const resizeHandle = resizeHandleRef.current;
+        const sidebar = document.querySelector('.sidebar') as HTMLElement;
+
+        if (!resizeHandle || !sidebar) return;
+
+        let isResizing = false;
+
+        const startResize = (e: MouseEvent) => {
+            isResizing = true;
+            document.addEventListener('mousemove', resize);
+            document.addEventListener('mouseup', stopResize);
+            // Prevent text selection during resize
+            document.body.style.userSelect = 'none';
+        };
+
+        const resize = (e: MouseEvent) => {
+            if (!isResizing) return;
+            const newWidth = e.clientX;
+            // Enforce min-width from CSS
+            if (newWidth >= 180) {
+                sidebar.style.width = `${newWidth}px`;
+            }
+        };
+
+        const stopResize = () => {
+            isResizing = false;
+            document.removeEventListener('mousemove', resize);
+            document.removeEventListener('mouseup', stopResize);
+            document.body.style.userSelect = '';
+        };
+
+        resizeHandle.addEventListener('mousedown', startResize);
+
+        return () => {
+            resizeHandle.removeEventListener('mousedown', startResize);
+            document.removeEventListener('mousemove', resize);
+            document.removeEventListener('mouseup', stopResize);
+        };
+    }, []);
 
     // Function to load file tree
     const loadFileTree = async () => {
@@ -83,6 +128,20 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ projectPath, onFileOpen }) 
         }).filter((item): item is NonNullable<typeof item> => item !== null);
     };
 
+    // Highlight text that matches search term
+    const highlightMatchedText = (text: string, searchTerm: string) => {
+        if (!searchTerm) return text;
+
+        const regex = new RegExp(`(${searchTerm})`, 'gi');
+        const parts = text.split(regex);
+
+        return parts.map((part, index) =>
+            regex.test(part) ?
+                <span key={index} className="highlighted-text">{part}</span> :
+                <span key={index}>{part}</span>
+        );
+    };
+
     // Render file tree recursively
     const renderFileTree = (items: FileTreeItem[], indent = 0) => {
         const filteredItems = searchTerm ? filterTree(items, searchTerm) : items;
@@ -102,7 +161,9 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ projectPath, onFileOpen }) 
                                 {item.expanded ? '▼' : '►'}
                             </span>
                             <span className="directory-icon">📁</span>
-                            <span className="item-name">{item.name}</span>
+                            <span className="item-name">
+                                {searchTerm ? highlightMatchedText(item.name, searchTerm) : item.name}
+                            </span>
                         </div>
                     ) : (
                         <div
@@ -111,8 +172,8 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ projectPath, onFileOpen }) 
                         >
                             <span className="file-icon">📄</span>
                             <span className="item-name">
-        {searchTerm ? highlightMatch(item.name, searchTerm) : item.name}
-    </span>
+                                {searchTerm ? highlightMatchedText(item.name, searchTerm) : item.name}
+                            </span>
                         </div>
                     )}
                 </li>
@@ -122,22 +183,8 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ projectPath, onFileOpen }) 
         ));
     };
 
-    const highlightMatch = (text: string, searchTerm: string) => {
-        if (!searchTerm) return text;
-
-        const regex = new RegExp(`(${searchTerm})`, 'gi');
-        const parts = text.split(regex);
-
-        return parts.map((part, i) => {
-            if (part.toLowerCase() === searchTerm.toLowerCase()) {
-                return <span key={i} className="highlight-match">{part}</span>;
-            }
-            return part;
-        });
-    };
-
     return (
-        <div className="file-explorer">
+        <div className="file-explorer" ref={fileExplorerRef}>
             <div className="file-explorer-header">
                 <h3>Explorer</h3>
                 <div className="file-explorer-actions">
@@ -163,6 +210,7 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ projectPath, onFileOpen }) 
                     {fileTree.length > 0 && renderFileTree(fileTree)}
                 </ul>
             </div>
+            <div className="resize-handle" ref={resizeHandleRef}></div>
         </div>
     );
 };

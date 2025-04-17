@@ -6,6 +6,9 @@
     background-color: #252526;
     color: #cccccc;
     overflow: hidden;
+    position: relative; /* Added for the resize handle */
+    scrollbar-width: thin; /* For Firefox */
+    scrollbar-color: #555555 #252526; /* For Firefox */
 }
 
 .file-explorer-header {
@@ -64,7 +67,8 @@
 
 .file-explorer-content {
     flex: 1;
-    overflow: auto;
+    overflow-y: auto;
+    overflow-x: hidden;
 }
 
 .file-tree {
@@ -117,12 +121,6 @@
     color: #cccccc;
 }
 
-.highlight-match {
-    background-color: #ffa500;
-    font-weight: bold;
-    border-radius: 2px;
-}
-
 /* Animation for expanding/collapsing */
 @keyframes fadeIn {
     from { opacity: 0; }
@@ -143,4 +141,29 @@
 
 .file-tree-item.directory .directory-content .item-name {
     font-weight: 500;
+}
+
+/* Highlight matched text in search results */
+.highlighted-text {
+    background-color: rgba(255, 255, 0, 0.3);
+    color: #ffffff;
+    border-radius: 2px;
+    font-weight: bold;
+}
+
+/* Right edge resize handle */
+.resize-handle {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 5px;
+    height: 100%;
+    cursor: col-resize;
+    background-color: lightskyblue;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.file-explorer:hover .resize-handle {
+    opacity: 1;
 }

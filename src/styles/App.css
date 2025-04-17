@@ -2,7 +2,7 @@
 .app-container {
     display: flex;
     flex-direction: column;
-    height: 100vh;
+    height: 99vh;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
 
@@ -37,7 +37,8 @@
     border-right: 1px solid #393939;
     overflow: hidden; /* Ensures content doesn't overflow */
     min-width: 180px; /* Minimum width */
-    resize: horizontal; /* Allows horizontal resizing */
+    position: relative; /* For the resize handle */
+    /* Removed resize: horizontal to use our custom resize handle */
 }
 
 .editor {
@@ -123,12 +124,7 @@
     justify-content: space-between;
 }
 
-/* Resize handle styling */
-.sidebar::-webkit-resizer {
-    background-color: #3c3c3c;
-}
-
-/* Added styles for separator between sidebar and editor */
+/* Added styles for separator between sidebar and editor to be visible, if needed */
 .sidebar-resizer {
     width: 5px;
     cursor: col-resize;

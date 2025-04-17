@@ -1,5 +1,5 @@
 // src/components/App/App.tsx
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import '../../styles/App.css';
 import * as path from 'path';
 import Terminal from '../Terminal/Terminal';
@@ -16,6 +16,7 @@ const App: React.FC<AppProps> = ({ projectPath }) => {
     const [projectName, setProjectName] = useState<string>('');
     const [isDirty, setIsDirty] = useState<boolean>(false);
     const [isTerminalExpanded, setIsTerminalExpanded] = useState<boolean>(true);
+    const sidebarRef = useRef<HTMLDivElement>(null);
 
     // Load project data when the project path changes
     useEffect(() => {
@@ -139,7 +140,7 @@ const App: React.FC<AppProps> = ({ projectPath }) => {
                 <h1>Front Qode IDE - {projectName}</h1>
             </div>
             <div className={`app-content ${isTerminalExpanded ? 'with-terminal' : ''}`}>
-                <div className="sidebar">
+                <div className="sidebar" ref={sidebarRef}>
                     <FileExplorer
                         projectPath={projectPath}
                         onFileOpen={openFile}

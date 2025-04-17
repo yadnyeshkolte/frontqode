@@ -117,6 +117,12 @@
     color: #cccccc;
 }
 
+.highlight-match {
+    background-color: #ffa500;
+    font-weight: bold;
+    border-radius: 2px;
+}
+
 /* Animation for expanding/collapsing */
 @keyframes fadeIn {
     from { opacity: 0; }

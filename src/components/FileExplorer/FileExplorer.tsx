@@ -110,7 +110,9 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ projectPath, onFileOpen }) 
                             onClick={() => onFileOpen(item.path)}
                         >
                             <span className="file-icon">📄</span>
-                            <span className="item-name">{item.name}</span>
+                            <span className="item-name">
+        {searchTerm ? highlightMatch(item.name, searchTerm) : item.name}
+    </span>
                         </div>
                     )}
                 </li>
@@ -118,6 +120,20 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ projectPath, onFileOpen }) 
                     renderFileTree(item.children, indent + 1)}
             </React.Fragment>
         ));
+    };
+
+    const highlightMatch = (text: string, searchTerm: string) => {
+        if (!searchTerm) return text;
+
+        const regex = new RegExp(`(${searchTerm})`, 'gi');
+        const parts = text.split(regex);
+
+        return parts.map((part, i) => {
+            if (part.toLowerCase() === searchTerm.toLowerCase()) {
+                return <span key={i} className="highlight-match">{part}</span>;
+            }
+            return part;
+        });
     };
 
     return (

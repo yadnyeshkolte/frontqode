@@ -22,6 +22,14 @@ contextBridge.exposeInMainWorld('electronAPI', {
     // Utility operations
     getProjectsDir: () => ipcRenderer.invoke('get-projects-dir'),
 
+
+    terminalExecuteCommand: (command: string) => ipcRenderer.invoke('terminal-execute-command', command),
+    terminalGetCurrentDir: () => ipcRenderer.invoke('terminal-get-current-dir'),
+    terminalGetGitBranch: () => ipcRenderer.invoke('terminal-get-git-branch'),
+    terminalChangeDirectory: (newDir: string) => ipcRenderer.invoke('terminal-change-directory', newDir),
+    terminalClearHistory: () => ipcRenderer.invoke('terminal-clear-history'),
+    terminalGetHistory: () => ipcRenderer.invoke('terminal-get-history'),
+
     // Menu event listeners
     onMenuNewProject: (callback: () => void) => {
         ipcRenderer.on('menu-new-project', () => callback());

@@ -1,4 +1,12 @@
 // src/types/electron.d.ts
+
+interface TerminalOutput {
+    id: string;
+    timestamp: Date;
+    type: 'stdout' | 'stderr' | 'input' | 'system';
+    data: string;
+}
+
 interface ElectronAPI {
     createProject: (projectName: string) => Promise<{ success: boolean; projectPath?: string; error?: string }>;
     openProjectDialog: () => Promise<{ success: boolean; projectPath?: string; error?: string }>;
@@ -12,6 +20,19 @@ interface ElectronAPI {
     isGitInstalled: () => Promise<{ success: boolean; isInstalled?: boolean; error?: string }>;
     cloneRepository: (repoUrl: string, projectName?: string) =>
         Promise<{ success: boolean; projectPath?: string; error?: string }>;
+
+    terminalExecuteCommand: (command: string) =>
+        Promise<{ success: boolean; output?: TerminalOutput[]; error?: string }>;
+    terminalGetCurrentDir: () =>
+        Promise<{ success: boolean; currentDir?: string; error?: string }>;
+    terminalGetGitBranch: () =>
+        Promise<{ success: boolean; gitBranch?: string | null; error?: string }>;
+    terminalChangeDirectory: (newDir: string) =>
+        Promise<{ success: boolean; path?: string; error?: string }>;
+    terminalClearHistory: () =>
+        Promise<{ success: boolean; error?: string }>;
+    terminalGetHistory: () =>
+        Promise<{ success: boolean; history?: TerminalOutput[]; error?: string }>;
 
     // Menu event listeners
     onMenuNewProject: (callback: () => void) => () => void;

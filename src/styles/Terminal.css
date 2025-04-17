@@ -1,0 +1,80 @@
+/* src/components/Terminal/Terminal.css */
+.terminal-container {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: #1e1e1e;
+    border-top: 1px solid #333;
+    display: flex;
+    flex-direction: column;
+    min-height: 100px;
+    max-height: 600px;
+}
+
+.terminal-resize-handle {
+    height: 4px;
+    background: #333;
+    cursor: ns-resize;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+}
+
+.terminal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    background: #252526;
+    border-bottom: 1px solid #333;
+}
+
+.terminal-close {
+    background: none;
+    border: none;
+    color: #999;
+    cursor: pointer;
+    padding: 4px 8px;
+    font-size: 16px;
+}
+
+.terminal-close:hover {
+    color: #fff;
+}
+
+.terminal-output {
+    flex: 1;
+    overflow-y: auto;
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: 13px;
+    padding: 8px;
+    color: #d4d4d4;
+}
+
+.terminal-line {
+    white-space: pre-wrap;
+    word-break: break-all;
+}
+
+.terminal-input-line {
+    display: flex;
+    align-items: center;
+    padding: 4px 0;
+}
+
+.terminal-prompt {
+    color: #569cd6;
+    margin-right: 4px;
+}
+
+.terminal-input-line input {
+    background: transparent;
+    border: none;
+    color: #d4d4d4;
+    flex: 1;
+    font-family: inherit;
+    font-size: inherit;
+    outline: none;
+}

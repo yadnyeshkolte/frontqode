@@ -2,6 +2,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import '../../styles/App.css';
 import * as path from 'path';
+import Terminal from '../Terminal/Terminal';
 
 interface AppProps {
     projectPath: string;
@@ -21,6 +22,7 @@ const App: React.FC<AppProps> = ({ projectPath }) => {
     const [fileContent, setFileContent] = useState<string>('');
     const [projectName, setProjectName] = useState<string>('');
     const [isDirty, setIsDirty] = useState<boolean>(false);
+    const [isTerminalExpanded, setIsTerminalExpanded] = useState<boolean>(true);
 
     // Function to load file tree
     const loadFileTree = async () => {
@@ -51,6 +53,9 @@ const App: React.FC<AppProps> = ({ projectPath }) => {
 
             // Load the file tree for the project
             loadFileTree();
+
+            // Change terminal directory to project path
+            window.electronAPI.terminalChangeDirectory(projectPath);
 
             // Look for a readme.md file to open by default
             const readmePath = path.join(projectPath, 'readme.md');
@@ -182,32 +187,8 @@ const App: React.FC<AppProps> = ({ projectPath }) => {
         ));
     };
 
-    // Additional menu action handlers
-    const handleFormatDocument = () => {
-        // Placeholder for document formatting functionality
-        // In a real implementation, this would format the active file content
-        console.log('Format document action triggered');
-
-        // Simple indentation-based formatting for demonstration
-        if (activeFile && fileContent) {
-            try {
-                // Very basic formatting - just for demonstration
-                // A real formatter would use language-specific logic
-                let formatted = fileContent;
-
-                // For now, just log that formatting was requested
-                console.log('Formatting requested for:', activeFile);
-
-                // In the future, implement real formatting here
-            } catch (error) {
-                console.error('Error formatting document:', error);
-            }
-        }
-    };
-
-    const handleCommentSelection = () => {
-        // Placeholder for comment/uncomment functionality
-        console.log('Comment selection action triggered');
+    const toggleTerminal = () => {
+        setIsTerminalExpanded(!isTerminalExpanded);
     };
 
     return (
@@ -215,7 +196,7 @@ const App: React.FC<AppProps> = ({ projectPath }) => {
             <div className="app-header">
                 <h1>Front Qode IDE - {projectName}</h1>
             </div>
-            <div className="app-content">
+            <div className={`app-content ${isTerminalExpanded ? 'with-terminal' : ''}`}>
                 <div className="sidebar">
                     <div className="sidebar-header">
                         Explorer
@@ -287,6 +268,7 @@ const App: React.FC<AppProps> = ({ projectPath }) => {
                     Save (Ctrl+S)
                 </div>
             </div>
+            <Terminal isExpanded={isTerminalExpanded} onToggle={toggleTerminal} />
         </div>
     );
 };

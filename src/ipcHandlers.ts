@@ -1,8 +1,10 @@
 // src/ipcHandlers.ts
 import { ipcMain, dialog } from 'electron';
 import FileSystemService from './services/FileSystemService';
+import TerminalService from './services/TerminalService';
 
 const fileSystemService = new FileSystemService();
+const terminalService = new TerminalService();
 
 export const setupIpcHandlers = () => {
     // Create a new project
@@ -94,4 +96,59 @@ export const setupIpcHandlers = () => {
             return { success: false, error: error.message };
         }
     });
+
+    ipcMain.handle('terminal-execute-command', async (_, command: string) => {
+        try {
+            const output = await terminalService.executeCommand(command);
+            return { success: true, output };
+        } catch (error) {
+            return { success: false, error: error.message };
+        }
+    });
+
+    ipcMain.handle('terminal-get-current-dir', async () => {
+        try {
+            const currentDir = terminalService.getCurrentDir();
+            return { success: true, currentDir };
+        } catch (error) {
+            return { success: false, error: error.message };
+        }
+    });
+
+    ipcMain.handle('terminal-get-git-branch', async () => {
+        try {
+            const gitBranch = terminalService.getGitBranch();
+            return { success: true, gitBranch };
+        } catch (error) {
+            return { success: false, error: error.message };
+        }
+    });
+
+    ipcMain.handle('terminal-change-directory', async (_, newDir: string) => {
+        try {
+            const result = await terminalService.changeDirectory(newDir);
+            return result;
+        } catch (error) {
+            return { success: false, error: error.message };
+        }
+    });
+
+    ipcMain.handle('terminal-clear-history', async () => {
+        try {
+            terminalService.clearHistory();
+            return { success: true };
+        } catch (error) {
+            return { success: false, error: error.message };
+        }
+    });
+
+    ipcMain.handle('terminal-get-history', async () => {
+        try {
+            const history = terminalService.getHistory();
+            return { success: true, history };
+        } catch (error) {
+            return { success: false, error: error.message };
+        }
+    });
+
 };

@@ -138,6 +138,7 @@ const App: React.FC<AppProps> = ({ projectPath }) => {
         <div className="app-container">
             <div className="app-header">
                 <h1>Front Qode IDE - {projectName}</h1>
+                {/* Debug button to test scrollbar */}
             </div>
             <div className={`app-content ${isTerminalExpanded ? 'with-terminal' : ''}`}>
                 <div className="sidebar" ref={sidebarRef}>
@@ -181,6 +182,7 @@ const App: React.FC<AppProps> = ({ projectPath }) => {
                                         saveFile();
                                     }
                                 }}
+                                style={{ overflowY: 'scroll' }} // Force scrollbar inline for testing
                             />
                         ) : (
                             <div className="no-file-open">No file open</div>

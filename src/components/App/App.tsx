@@ -3,20 +3,13 @@ import React, { useEffect, useState, useCallback } from 'react';
 import '../../styles/App.css';
 import * as path from 'path';
 import Terminal from '../Terminal/Terminal';
+import FileExplorer from '../FileExplorer/FileExplorer';
 
 interface AppProps {
     projectPath: string;
 }
 
-interface FileTreeItem {
-    name: string;
-    path: string;
-    isDirectory: boolean;
-    children?: FileTreeItem[];
-}
-
 const App: React.FC<AppProps> = ({ projectPath }) => {
-    const [fileTree, setFileTree] = useState<FileTreeItem[]>([]);
     const [openFiles, setOpenFiles] = useState<string[]>([]);
     const [activeFile, setActiveFile] = useState<string | null>(null);
     const [fileContent, setFileContent] = useState<string>('');
@@ -24,35 +17,12 @@ const App: React.FC<AppProps> = ({ projectPath }) => {
     const [isDirty, setIsDirty] = useState<boolean>(false);
     const [isTerminalExpanded, setIsTerminalExpanded] = useState<boolean>(true);
 
-    // Function to load file tree
-    const loadFileTree = async () => {
-        try {
-            const result = await window.electronAPI.readDirectory(projectPath);
-
-            if (result.success && result.contents) {
-                setFileTree([
-                    {
-                        name: path.basename(projectPath),
-                        path: projectPath,
-                        isDirectory: true,
-                        children: result.contents
-                    }
-                ]);
-            }
-        } catch (error) {
-            console.error('Failed to load file tree:', error);
-        }
-    };
-
     // Load project data when the project path changes
     useEffect(() => {
         if (projectPath) {
             // Extract project name from path
             const name = path.basename(projectPath);
             setProjectName(name);
-
-            // Load the file tree for the project
-            loadFileTree();
 
             // Change terminal directory to project path
             window.electronAPI.terminalChangeDirectory(projectPath);
@@ -78,13 +48,6 @@ const App: React.FC<AppProps> = ({ projectPath }) => {
 
     // Set up menu event listeners
     useEffect(() => {
-        // Save file handler from menu
-        const handleMenuSaveFile = () => {
-            if (activeFile) {
-                saveFile();
-            }
-        };
-
         // Handle app-save-file custom event (for menu integration)
         const handleAppSaveFile = () => {
             if (activeFile) {
@@ -136,8 +99,6 @@ const App: React.FC<AppProps> = ({ projectPath }) => {
             try {
                 await window.electronAPI.writeFile(activeFile, fileContent);
                 setIsDirty(false);
-                // Refresh the file tree after saving to show any new files
-                await loadFileTree();
             } catch (error) {
                 console.error('Failed to save file:', error);
             }
@@ -168,25 +129,6 @@ const App: React.FC<AppProps> = ({ projectPath }) => {
         }
     };
 
-    const refreshFileTree = async () => {
-        await loadFileTree();
-    };
-
-    const renderFileTree = (items: FileTreeItem[], indent = 0) => {
-        return items.map((item) => (
-            <React.Fragment key={item.path}>
-                <li
-                    className={`file-tree-item ${item.isDirectory ? 'directory' : 'file'}`}
-                    style={{ paddingLeft: `${indent * 16}px` }}
-                    onClick={() => !item.isDirectory && openFile(item.path)}
-                >
-                    {item.isDirectory ? '📁' : '📄'} {item.name}
-                </li>
-                {item.children && renderFileTree(item.children, indent + 1)}
-            </React.Fragment>
-        ));
-    };
-
     const toggleTerminal = () => {
         setIsTerminalExpanded(!isTerminalExpanded);
     };
@@ -198,21 +140,10 @@ const App: React.FC<AppProps> = ({ projectPath }) => {
             </div>
             <div className={`app-content ${isTerminalExpanded ? 'with-terminal' : ''}`}>
                 <div className="sidebar">
-                    <div className="sidebar-header">
-                        Explorer
-                        <button
-                            className="refresh-button"
-                            onClick={refreshFileTree}
-                            title="Refresh File Tree"
-                        >
-                            🔄
-                        </button>
-                    </div>
-                    <div className="sidebar-content">
-                        <ul className="file-tree">
-                            {fileTree.length > 0 && renderFileTree(fileTree)}
-                        </ul>
-                    </div>
+                    <FileExplorer
+                        projectPath={projectPath}
+                        onFileOpen={openFile}
+                    />
                 </div>
                 <div className="editor">
                     <div className="editor-tabs">

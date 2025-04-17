@@ -3,7 +3,7 @@ import './index.css';
 import './styles/App.css';
 import './styles/AppInit.css';
 import './styles/AppStarter.css';
-import './styles/ProjectDialog.css';
+import './components/ProjectDialog/ProjectDialog.css';
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import AppInit from './components/AppInit/AppInit';

@@ -1,6 +1,6 @@
 // src/components/ProjectDialog/ProjectDialog.tsx
 import React, { useState } from 'react';
-import '../../styles/ProjectDialog.css';
+import './ProjectDialog.css';
 
 interface ProjectDialogProps {
     isOpen: boolean;

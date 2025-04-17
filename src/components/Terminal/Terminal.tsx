@@ -12,9 +12,10 @@ interface TerminalOutput {
 interface TerminalProps {
     isExpanded: boolean;
     onToggle: () => void;
+    projectPath?: string; // Add projectPath prop
 }
 
-const Terminal: React.FC<TerminalProps> = ({ isExpanded, onToggle }) => {
+const Terminal: React.FC<TerminalProps> = ({ isExpanded, onToggle, projectPath }) => {
     const [commandHistory, setCommandHistory] = useState<string[]>([]);
     const [currentCommand, setCurrentCommand] = useState('');
     const [outputs, setOutputs] = useState<TerminalOutput[]>([]);
@@ -24,9 +25,14 @@ const Terminal: React.FC<TerminalProps> = ({ isExpanded, onToggle }) => {
     const outputRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
 
+    // Update terminal directory when projectPath changes
     useEffect(() => {
-        updateDirectoryInfo();
-    }, []);
+        if (projectPath) {
+            initializeWithProjectPath(projectPath);
+        } else {
+            updateDirectoryInfo();
+        }
+    }, [projectPath]);
 
     useEffect(() => {
         // Scroll to bottom when new output is added
@@ -34,6 +40,32 @@ const Terminal: React.FC<TerminalProps> = ({ isExpanded, onToggle }) => {
             outputRef.current.scrollTop = outputRef.current.scrollHeight;
         }
     }, [outputs]);
+
+    const initializeWithProjectPath = async (path: string) => {
+        try {
+            // First, change to the project directory
+            const result = await window.electronAPI.terminalChangeDirectory(path);
+            if (result.success) {
+                setCurrentDir(result.path || path);
+
+                // Add a system message showing the directory change
+                const systemOutput: TerminalOutput = {
+                    id: Date.now().toString(),
+                    timestamp: new Date(),
+                    type: 'system',
+                    data: `Changed directory to: ${result.path || path}\n`
+                };
+                setOutputs(prev => [...prev, systemOutput]);
+
+                // Update git branch info for the new directory
+                await updateDirectoryInfo();
+            } else {
+                console.error('Failed to change directory:', result.error);
+            }
+        } catch (error) {
+            console.error('Error initializing terminal with project path:', error);
+        }
+    };
 
     const updateDirectoryInfo = async () => {
         const dirResult = await window.electronAPI.terminalGetCurrentDir();

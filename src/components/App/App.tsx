@@ -202,7 +202,11 @@ const App: React.FC<AppProps> = ({ projectPath }) => {
                     Save (Ctrl+S)
                 </div>
             </div>
-            <Terminal isExpanded={isTerminalExpanded} onToggle={toggleTerminal} />
+            <Terminal
+                isExpanded={isTerminalExpanded}
+                onToggle={() => setIsTerminalExpanded(!isTerminalExpanded)}
+                projectPath={projectPath} // Pass the projectPath to Terminal
+            />
         </div>
     );
 };

@@ -33,6 +33,13 @@ class TerminalService {
     }
 
     /**
+     * Initializes the terminal with a specific directory
+     */
+    async initializeWithDirectory(directory: string): Promise<{ success: boolean; path?: string; error?: string }> {
+        return this.changeDirectory(directory);
+    }
+
+    /**
      * Gets the current working directory
      */
     getCurrentDir(): string {

@@ -34,6 +34,14 @@ interface ElectronAPI {
     terminalGetHistory: () =>
         Promise<{ success: boolean; history?: TerminalOutput[]; error?: string }>;
 
+    // LSP operations
+    getLSPServerInfo: (languageId: string) =>
+        Promise<{ success: boolean; port?: number; languageId?: string; error?: string }>;
+    stopLSPServer: (languageId: string) =>
+        Promise<{ success: boolean; error?: string }>;
+    installLSPServer: (languageId: string) =>
+        Promise<{ success: boolean; error?: string }>;
+
     // Menu event listeners
     onMenuNewProject: (callback: () => void) => () => void;
     onMenuOpenProject: (callback: (projectPath: string) => void) => () => void;
@@ -50,6 +58,7 @@ interface ElectronAPI {
     onMenuGitPull: (callback: () => void) => () => void;
     onMenuOpenSettings: (callback: () => void) => () => void;
     onMenuOpenExtensions: (callback: () => void) => () => void;
+    onMenuOpenLSPManager: (callback: () => void) => () => void;
 }
 
 interface Window {

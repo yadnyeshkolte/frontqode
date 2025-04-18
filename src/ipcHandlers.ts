@@ -2,11 +2,15 @@
 import { ipcMain, dialog } from 'electron';
 import FileSystemService from './services/FileSystemService';
 import TerminalService from './services/TerminalService';
+import LanguageServerService from './services/LanguageServerService';
 
 const fileSystemService = new FileSystemService();
 const terminalService = new TerminalService();
+const languageServerService = new LanguageServerService();
 
 export const setupIpcHandlers = () => {
+    // Existing handlers...
+
     // Create a new project
     ipcMain.handle('create-project', async (_, projectName: string) => {
         try {
@@ -151,4 +155,42 @@ export const setupIpcHandlers = () => {
         }
     });
 
+    // New Language Server Protocol handlers
+    ipcMain.handle('get-lsp-server-info', async (_, languageId: string) => {
+        try {
+            // Check if server is running
+            let serverInfo = languageServerService.getServerInfo(languageId);
+
+            // Start server if it's not running
+            if (!serverInfo) {
+                serverInfo = await languageServerService.startServer(languageId);
+            }
+
+            if (serverInfo) {
+                return { success: true, ...serverInfo };
+            } else {
+                return { success: false, error: `Failed to start language server for ${languageId}` };
+            }
+        } catch (error) {
+            return { success: false, error: error.message };
+        }
+    });
+
+    ipcMain.handle('stop-lsp-server', async (_, languageId: string) => {
+        try {
+            const result = await languageServerService.stopServer(languageId);
+            return { success: result };
+        } catch (error) {
+            return { success: false, error: error.message };
+        }
+    });
+
+    ipcMain.handle('install-lsp-server', async (_, languageId: string) => {
+        try {
+            const result = await languageServerService.installServer(languageId);
+            return { success: result };
+        } catch (error) {
+            return { success: false, error: error.message };
+        }
+    });
 };

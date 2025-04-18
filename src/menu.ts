@@ -179,7 +179,14 @@ export function setupApplicationMenu(mainWindow: BrowserWindow) {
                     click: () => {
                         mainWindow.webContents.send('menu-open-extensions');
                     }
+                },
+                {
+                    label: 'Language Servers',
+                    click: () => {
+                        mainWindow.webContents.send('menu-open-lsp-manager');
+                    }
                 }
+
             ]
         },
 

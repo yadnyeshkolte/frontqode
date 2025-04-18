@@ -22,13 +22,18 @@ contextBridge.exposeInMainWorld('electronAPI', {
     // Utility operations
     getProjectsDir: () => ipcRenderer.invoke('get-projects-dir'),
 
-
+    // Terminal operations
     terminalExecuteCommand: (command: string) => ipcRenderer.invoke('terminal-execute-command', command),
     terminalGetCurrentDir: () => ipcRenderer.invoke('terminal-get-current-dir'),
     terminalGetGitBranch: () => ipcRenderer.invoke('terminal-get-git-branch'),
     terminalChangeDirectory: (newDir: string) => ipcRenderer.invoke('terminal-change-directory', newDir),
     terminalClearHistory: () => ipcRenderer.invoke('terminal-clear-history'),
     terminalGetHistory: () => ipcRenderer.invoke('terminal-get-history'),
+
+    // LSP operations
+    getLSPServerInfo: (languageId: string) => ipcRenderer.invoke('get-lsp-server-info', languageId),
+    stopLSPServer: (languageId: string) => ipcRenderer.invoke('stop-lsp-server', languageId),
+    installLSPServer: (languageId: string) => ipcRenderer.invoke('install-lsp-server', languageId),
 
     // Menu event listeners
     onMenuNewProject: (callback: () => void) => {
@@ -121,6 +126,12 @@ contextBridge.exposeInMainWorld('electronAPI', {
         ipcRenderer.on('menu-open-extensions', () => callback());
         return () => {
             ipcRenderer.removeAllListeners('menu-open-extensions');
+        };
+    },
+    onMenuOpenLSPManager: (callback: () => void) => {
+        ipcRenderer.on('menu-open-lsp-manager', () => callback());
+        return () => {
+            ipcRenderer.removeAllListeners('menu-open-lsp-manager');
         };
     },
 });

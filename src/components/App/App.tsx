@@ -4,6 +4,9 @@ import '../../styles/App.css';
 import * as path from 'path';
 import Terminal from '../Terminal/Terminal';
 import FileExplorer from '../FileExplorer/FileExplorer';
+import MonacoEditor from '../Editor/MonacoEditor';  // Import our new component
+import LSPManager from '../Settings/LSPManager';
+
 
 interface AppProps {
     projectPath: string;
@@ -17,6 +20,7 @@ const App: React.FC<AppProps> = ({ projectPath }) => {
     const [isDirty, setIsDirty] = useState<boolean>(false);
     const [isTerminalExpanded, setIsTerminalExpanded] = useState<boolean>(true);
     const sidebarRef = useRef<HTMLDivElement>(null);
+    const [isLSPManagerOpen, setIsLSPManagerOpen] = useState<boolean>(false);
 
     // Load project data when the project path changes
     useEffect(() => {
@@ -106,8 +110,8 @@ const App: React.FC<AppProps> = ({ projectPath }) => {
         }
     };
 
-    const handleFileContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-        setFileContent(e.target.value);
+    const handleFileContentChange = (content: string) => {
+        setFileContent(content);
         setIsDirty(true);
     };
 
@@ -130,6 +134,16 @@ const App: React.FC<AppProps> = ({ projectPath }) => {
         }
     };
 
+    useEffect(() => {
+        const removeOpenLSPManagerListener = window.electronAPI.onMenuOpenLSPManager(() => {
+            setIsLSPManagerOpen(true);
+        });
+
+        return () => {
+            removeOpenLSPManagerListener();
+        };
+    }, []);
+
     const toggleTerminal = () => {
         setIsTerminalExpanded(!isTerminalExpanded);
     };
@@ -138,7 +152,6 @@ const App: React.FC<AppProps> = ({ projectPath }) => {
         <div className="app-container">
             <div className="app-header">
                 <h1>Front Qode IDE - {projectName}</h1>
-                {/* Debug button to test scrollbar */}
             </div>
             <div className={`app-content ${isTerminalExpanded ? 'with-terminal' : ''}`}>
                 <div className="sidebar" ref={sidebarRef}>
@@ -172,17 +185,11 @@ const App: React.FC<AppProps> = ({ projectPath }) => {
                     </div>
                     <div className="editor-content">
                         {activeFile ? (
-                            <textarea
-                                value={fileContent}
+                            <MonacoEditor
+                                filePath={activeFile}
+                                content={fileContent}
                                 onChange={handleFileContentChange}
-                                onKeyDown={(e) => {
-                                    // Save on Ctrl+S
-                                    if (e.ctrlKey && e.key === 's') {
-                                        e.preventDefault();
-                                        saveFile();
-                                    }
-                                }}
-                                style={{ overflowY: 'scroll' }} // Force scrollbar inline for testing
+                                onSave={saveFile}
                             />
                         ) : (
                             <div className="no-file-open">No file open</div>
@@ -205,8 +212,11 @@ const App: React.FC<AppProps> = ({ projectPath }) => {
             <Terminal
                 isExpanded={isTerminalExpanded}
                 onToggle={() => setIsTerminalExpanded(!isTerminalExpanded)}
-                projectPath={projectPath} // Pass the projectPath to Terminal
+                projectPath={projectPath}
             />
+            {isLSPManagerOpen && (
+                <LSPManager onClose={() => setIsLSPManagerOpen(false)} />
+            )}
         </div>
     );
 };

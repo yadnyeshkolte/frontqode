@@ -98,7 +98,7 @@ const MonacoEditor: React.FC<MonacoEditorProps> = ({ filePath, content, onChange
 
             // Set up LSP if needed for this file type
             if (['typescript', 'javascript', 'html', 'css', 'json'].includes(language)) {
-                setupLSP(language, filePath);
+                setupLSP(language).then(r => {console.log(r);});
             }
         }
 
@@ -121,7 +121,7 @@ const MonacoEditor: React.FC<MonacoEditorProps> = ({ filePath, content, onChange
     }, [content]);
 
     // Set up LSP connection for the editor
-    const setupLSP = async (language: string, filePath: string) => {
+    const setupLSP = async (language: string) => {
         try {
             // This is where you would connect to a language server
             // You'll need to implement this separately for each language

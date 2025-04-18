@@ -101,6 +101,60 @@ export const setupIpcHandlers = () => {
         }
     });
 
+
+    ipcMain.handle('show-save-dialog', async (_, options) => {
+        try {
+            const result = await dialog.showSaveDialog(options);
+            return {
+                success: !result.canceled,
+                filePath: result.filePath,
+            };
+        } catch (error) {
+            return { success: false, error: error.message };
+        }
+    });
+
+// Show open dialog
+    ipcMain.handle('show-open-dialog', async (_, options) => {
+        try {
+            const result = await dialog.showOpenDialog(options);
+            return {
+                success: !result.canceled,
+                filePaths: result.filePaths,
+            };
+        } catch (error) {
+            return { success: false, error: error.message };
+        }
+    });
+
+// Recent files storage
+    let recentFiles: string[] = [];
+    const MAX_RECENT_FILES = 10;
+
+    ipcMain.handle('get-recent-files', () => {
+        return recentFiles;
+    });
+
+    ipcMain.handle('add-recent-file', (_, filePath: string) => {
+        // Remove if exists to avoid duplicates
+        recentFiles = recentFiles.filter(path => path !== filePath);
+
+        // Add to front of list
+        recentFiles.unshift(filePath);
+
+        // Trim list to max size
+        if (recentFiles.length > MAX_RECENT_FILES) {
+            recentFiles = recentFiles.slice(0, MAX_RECENT_FILES);
+        }
+
+        return { success: true };
+    });
+
+    ipcMain.handle('clear-recent-files', () => {
+        recentFiles = [];
+        return { success: true };
+    });
+
     ipcMain.handle('terminal-execute-command', async (_, command: string) => {
         try {
             const output = await terminalService.executeCommand(command);

@@ -6,6 +6,7 @@ import Terminal from '../Terminal/Terminal';
 import FileExplorer from '../FileExplorer/FileExplorer';
 import MonacoEditor from '../Editor/MonacoEditor';
 import LSPManager from '../Settings/LSPManager';
+import FileOperationsService from '../../services/FileOperationsService';
 
 interface AppProps {
     projectPath: string;
@@ -21,6 +22,7 @@ const App: React.FC<AppProps> = ({ projectPath }) => {
     const sidebarRef = useRef<HTMLDivElement>(null);
     const [isLSPManagerOpen, setIsLSPManagerOpen] = useState<boolean>(false);
     const [editorKey, setEditorKey] = useState<number>(0); // Add a key to force re-render of editor
+    const fileOpsService = useRef(new FileOperationsService()).current;
 
     // Load project data when the project path changes
     useEffect(() => {
@@ -71,8 +73,8 @@ const App: React.FC<AppProps> = ({ projectPath }) => {
 
     const openFile = async (filePath: string) => {
         try {
-            // If we have unsaved changes, confirm with user
-            if (isDirty && activeFile) {
+            // Check for unsaved changes first
+            if (activeFile && isDirty) {
                 const confirmSave = window.confirm(
                     `You have unsaved changes in ${path.basename(activeFile)}. Save before opening a new file?`
                 );
@@ -82,7 +84,7 @@ const App: React.FC<AppProps> = ({ projectPath }) => {
                 }
             }
 
-            const result = await window.electronAPI.readFile(filePath);
+            const result = await fileOpsService.openFile(filePath);
 
             if (result.success && result.content !== undefined) {
                 // Add file to open files if not already there
@@ -94,9 +96,8 @@ const App: React.FC<AppProps> = ({ projectPath }) => {
                 setActiveFile(filePath);
                 setFileContent(result.content);
                 setIsDirty(false);
-
-                // Force editor re-render
-                setEditorKey(prev => prev + 1);
+            } else {
+                console.error(`Failed to open file: ${result.error}`);
             }
         } catch (error) {
             console.error('Failed to open file:', error);
@@ -106,10 +107,43 @@ const App: React.FC<AppProps> = ({ projectPath }) => {
     const saveFile = async () => {
         if (activeFile) {
             try {
-                await window.electronAPI.writeFile(activeFile, fileContent);
-                setIsDirty(false);
+                const result = await fileOpsService.saveFile(activeFile, fileContent);
+
+                if (result.success) {
+                    setIsDirty(false);
+                    // Show a brief success message, maybe through a toast notification or status bar
+                    console.log(`File ${path.basename(activeFile)} saved successfully.`);
+                } else {
+                    console.error(`Failed to save file: ${result.error}`);
+                }
             } catch (error) {
                 console.error('Failed to save file:', error);
+            }
+        }
+    };
+
+    const saveFileAs = async () => {
+        if (activeFile) {
+            try {
+                const result = await fileOpsService.saveFileAs(activeFile, fileContent);
+
+                if (result.success && result.newPath) {
+                    // Update our file references
+                    const newPath = result.newPath;
+
+                    // If the old file was in our list, remove it and add the new one
+                    const newOpenFiles = openFiles.filter(file => file !== activeFile);
+                    newOpenFiles.push(newPath);
+                    setOpenFiles(newOpenFiles);
+
+                    // Set the new file as active
+                    setActiveFile(newPath);
+                    setIsDirty(false);
+                } else if (!result.success) {
+                    console.error(`Failed to save file as: ${result.error}`);
+                }
+            } catch (error) {
+                console.error('Failed to save file as:', error);
             }
         }
     };
@@ -117,9 +151,27 @@ const App: React.FC<AppProps> = ({ projectPath }) => {
     const handleFileContentChange = (content: string) => {
         setFileContent(content);
         setIsDirty(true);
+
+        if (activeFile) {
+            fileOpsService.updateFileContent(activeFile, content);
+        }
     };
 
-    const closeFile = (filePath: string) => {
+    const closeFile = async (filePath: string) => {
+        // Check if file has unsaved changes
+        if (filePath === activeFile && isDirty) {
+            const confirmSave = window.confirm(
+                `${path.basename(filePath)} has unsaved changes. Save before closing?`
+            );
+
+            if (confirmSave) {
+                await saveFile();
+            }
+        }
+
+        // Remove from our service
+        fileOpsService.closeFile(filePath);
+
         // Remove from open files
         const newOpenFiles = openFiles.filter(file => file !== filePath);
         setOpenFiles(newOpenFiles);
@@ -134,9 +186,6 @@ const App: React.FC<AppProps> = ({ projectPath }) => {
                 setActiveFile(null);
                 setFileContent('');
                 setIsDirty(false);
-
-                // Force editor re-render
-                setEditorKey(prev => prev + 1);
             }
         }
     };
@@ -150,6 +199,41 @@ const App: React.FC<AppProps> = ({ projectPath }) => {
             removeOpenLSPManagerListener();
         };
     }, []);
+
+    useEffect(() => {
+        const removeSaveFileListener = window.electronAPI.onMenuSaveFile(() => {
+            saveFile();
+        });
+
+        const removeSaveFileAsListener = window.electronAPI.onMenuSaveFileAs(() => {
+            saveFileAs();
+        });
+
+        // Add proper keyboard shortcut handler for the whole app
+        const handleKeyDown = (e: KeyboardEvent) => {
+            // Save - Ctrl+S
+            if ((e.ctrlKey || e.metaKey) && e.key === 's' && !e.shiftKey) {
+                e.preventDefault();
+                saveFile();
+            }
+
+            // Save As - Ctrl+Shift+S
+            if ((e.ctrlKey || e.metaKey) && e.key === 's' && e.shiftKey) {
+                e.preventDefault();
+                saveFileAs();
+            }
+        };
+
+        // Add the global keyboard listener
+        window.addEventListener('keydown', handleKeyDown);
+
+        // Clean up all listeners
+        return () => {
+            removeSaveFileListener();
+            removeSaveFileAsListener();
+            window.removeEventListener('keydown', handleKeyDown);
+        };
+    }, [activeFile, fileContent, isDirty]); // Add all deps needed for the callbacks
 
     return (
         <div className="app-container">

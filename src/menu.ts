@@ -34,6 +34,20 @@ export function setupApplicationMenu(mainWindow: BrowserWindow) {
                     }
                 },
                 {
+                    label: 'Open Recent',
+                    submenu: [
+                        {
+                            label: 'Clear Recent',
+                            enabled: true,
+                            click: () => {
+                                mainWindow.webContents.send('menu-clear-recent-files');
+                            }
+                        },
+                        { type: 'separator' },
+                        // Recent files will be dynamically inserted here
+                    ]
+                },
+                {
                     label: 'Clone Repository',
                     click: () => {
                         mainWindow.webContents.send('menu-clone-repo');

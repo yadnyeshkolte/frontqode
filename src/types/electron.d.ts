@@ -59,6 +59,9 @@ interface ElectronAPI {
     onMenuOpenSettings: (callback: () => void) => () => void;
     onMenuOpenExtensions: (callback: () => void) => () => void;
     onMenuOpenLSPManager: (callback: () => void) => () => void;
+    async
+
+    showSaveDialog(param: {defaultPath: string; filters: {name: string; extensions: string[]}[]}): any;
 }
 
 interface Window {

@@ -22,6 +22,16 @@ contextBridge.exposeInMainWorld('electronAPI', {
     // Utility operations
     getProjectsDir: () => ipcRenderer.invoke('get-projects-dir'),
 
+    // File dialog operations
+    showSaveDialog: (options: any) => ipcRenderer.invoke('show-save-dialog', options),
+    showOpenDialog: (options: any) => ipcRenderer.invoke('show-open-dialog', options),
+
+// Recent files operations
+    getRecentFiles: () => ipcRenderer.invoke('get-recent-files'),
+    addRecentFile: (filePath: string) => ipcRenderer.invoke('add-recent-file', filePath),
+    clearRecentFiles: () => ipcRenderer.invoke('clear-recent-files'),
+
+
     // Terminal operations
     terminalExecuteCommand: (command: string) => ipcRenderer.invoke('terminal-execute-command', command),
     terminalGetCurrentDir: () => ipcRenderer.invoke('terminal-get-current-dir'),

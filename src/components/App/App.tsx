@@ -4,9 +4,8 @@ import '../../styles/App.css';
 import * as path from 'path';
 import Terminal from '../Terminal/Terminal';
 import FileExplorer from '../FileExplorer/FileExplorer';
-import MonacoEditor from '../Editor/MonacoEditor';  // Import our new component
+import MonacoEditor from '../Editor/MonacoEditor';
 import LSPManager from '../Settings/LSPManager';
-
 
 interface AppProps {
     projectPath: string;
@@ -21,6 +20,7 @@ const App: React.FC<AppProps> = ({ projectPath }) => {
     const [isTerminalExpanded, setIsTerminalExpanded] = useState<boolean>(true);
     const sidebarRef = useRef<HTMLDivElement>(null);
     const [isLSPManagerOpen, setIsLSPManagerOpen] = useState<boolean>(false);
+    const [editorKey, setEditorKey] = useState<number>(0); // Add a key to force re-render of editor
 
     // Load project data when the project path changes
     useEffect(() => {
@@ -90,9 +90,13 @@ const App: React.FC<AppProps> = ({ projectPath }) => {
                     setOpenFiles([...openFiles, filePath]);
                 }
 
+                // Set active file and content
                 setActiveFile(filePath);
                 setFileContent(result.content);
                 setIsDirty(false);
+
+                // Force editor re-render
+                setEditorKey(prev => prev + 1);
             }
         } catch (error) {
             console.error('Failed to open file:', error);
@@ -130,6 +134,9 @@ const App: React.FC<AppProps> = ({ projectPath }) => {
                 setActiveFile(null);
                 setFileContent('');
                 setIsDirty(false);
+
+                // Force editor re-render
+                setEditorKey(prev => prev + 1);
             }
         }
     };
@@ -143,10 +150,6 @@ const App: React.FC<AppProps> = ({ projectPath }) => {
             removeOpenLSPManagerListener();
         };
     }, []);
-
-    const toggleTerminal = () => {
-        setIsTerminalExpanded(!isTerminalExpanded);
-    };
 
     return (
         <div className="app-container">
@@ -186,6 +189,7 @@ const App: React.FC<AppProps> = ({ projectPath }) => {
                     <div className="editor-content">
                         {activeFile ? (
                             <MonacoEditor
+                                key={`${activeFile}-${editorKey}`} // Add key to force re-render
                                 filePath={activeFile}
                                 content={fileContent}
                                 onChange={handleFileContentChange}

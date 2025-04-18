@@ -34,8 +34,14 @@ const MonacoEditor: React.FC<MonacoEditorProps> = ({ filePath, content, onChange
     const editorRef = useRef<HTMLDivElement>(null);
     const monacoEditorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
 
-    // Set up editor when component mounts
+    // Set up editor when component mounts or filePath changes
     useEffect(() => {
+        // Clean up any existing editor before creating a new one
+        if (monacoEditorRef.current) {
+            monacoEditorRef.current.dispose();
+            monacoEditorRef.current = null;
+        }
+
         if (editorRef.current) {
             // Determine language based on file extension
             const ext = path.extname(filePath).toLowerCase();
@@ -102,10 +108,11 @@ const MonacoEditor: React.FC<MonacoEditorProps> = ({ filePath, content, onChange
             }
         }
 
-        // Clean up editor when component unmounts
+        // Clean up editor when component unmounts or when filePath changes
         return () => {
             if (monacoEditorRef.current) {
                 monacoEditorRef.current.dispose();
+                monacoEditorRef.current = null;
             }
         };
     }, [filePath]); // Re-create editor when file path changes
@@ -115,7 +122,13 @@ const MonacoEditor: React.FC<MonacoEditorProps> = ({ filePath, content, onChange
         if (monacoEditorRef.current) {
             const currentValue = monacoEditorRef.current.getValue();
             if (content !== currentValue) {
-                monacoEditorRef.current.setValue(content);
+                // Use model.setValue to avoid triggering onDidChangeModelContent
+                const model = monacoEditorRef.current.getModel();
+                if (model) {
+                    model.setValue(content);
+                } else {
+                    monacoEditorRef.current.setValue(content);
+                }
             }
         }
     }, [content]);

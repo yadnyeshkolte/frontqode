@@ -6,6 +6,7 @@ import {
     processFileTree,
     updateExpandedState
 } from '../../utils/FileExplorerUtils';
+import { getFileIconInfo, getDirectoryIcon } from '../../utils/IconUtils';
 import './FileExplorer.css';
 
 interface FileExplorerProps {
@@ -146,41 +147,50 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ projectPath, onFileOpen }) 
     const renderFileTree = (items: FileTreeItem[], indent = 0) => {
         const filteredItems = searchTerm ? filterTree(items, searchTerm) : items;
 
-        return filteredItems.map((item) => (
-            <React.Fragment key={item.path}>
-                <li
-                    className={`file-tree-item ${item.isDirectory ? 'directory' : 'file'}`}
-                    style={{ paddingLeft: `${indent * 16}px` }}
-                >
-                    {item.isDirectory ? (
-                        <div
-                            className="directory-content"
-                            onClick={() => toggleDirectory(item.path)}
-                        >
-                            <span className={`expand-icon ${item.expanded ? 'expanded' : 'collapsed'}`}>
-                                {item.expanded ? '▼' : '►'}
-                            </span>
-                            <span className="directory-icon">📁</span>
-                            <span className="item-name">
-                                {searchTerm ? highlightMatchedText(item.name, searchTerm) : item.name}
-                            </span>
-                        </div>
-                    ) : (
-                        <div
-                            className="file-content"
-                            onClick={() => onFileOpen(item.path)}
-                        >
-                            <span className="file-icon">📄</span>
-                            <span className="item-name">
-                                {searchTerm ? highlightMatchedText(item.name, searchTerm) : item.name}
-                            </span>
-                        </div>
-                    )}
-                </li>
-                {item.isDirectory && item.expanded && item.children &&
-                    renderFileTree(item.children, indent + 1)}
-            </React.Fragment>
-        ));
+        return filteredItems.map((item) => {
+            // Get icon info for file items
+            const iconInfo = !item.isDirectory ? getFileIconInfo(item.path) : null;
+
+            return (
+                <React.Fragment key={item.path}>
+                    <li
+                        className={`file-tree-item ${item.isDirectory ? 'directory' : 'file'}`}
+                        style={{ paddingLeft: `${indent * 16}px` }}
+                    >
+                        {item.isDirectory ? (
+                            <div
+                                className="directory-content"
+                                onClick={() => toggleDirectory(item.path)}
+                            >
+                                <span className={`expand-icon ${item.expanded ? 'expanded' : 'collapsed'}`}>
+                                    {item.expanded ? '▼' : '►'}
+                                </span>
+                                <span className="material-icons directory-icon">
+                                    {getDirectoryIcon(item.expanded)}
+                                </span>
+                                <span className="item-name">
+                                    {searchTerm ? highlightMatchedText(item.name, searchTerm) : item.name}
+                                </span>
+                            </div>
+                        ) : (
+                            <div
+                                className="file-content"
+                                onClick={() => onFileOpen(item.path)}
+                            >
+                                <span className={`material-icons file-icon ${iconInfo?.cssClass || ''}`}>
+                                    {iconInfo?.icon || 'description'}
+                                </span>
+                                <span className="item-name">
+                                    {searchTerm ? highlightMatchedText(item.name, searchTerm) : item.name}
+                                </span>
+                            </div>
+                        )}
+                    </li>
+                    {item.isDirectory && item.expanded && item.children &&
+                        renderFileTree(item.children, indent + 1)}
+                </React.Fragment>
+            );
+        });
     };
 
     return (
@@ -190,10 +200,10 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ projectPath, onFileOpen }) 
                 <div className="file-explorer-actions">
                     <button
                         className="refresh-button"
-                        onClick={loadFileTree}
                         title="Refresh File Tree"
+                        onClick={loadFileTree}
                     >
-                        🔄
+                        <span className="material-icons">refresh</span>
                     </button>
                 </div>
             </div>

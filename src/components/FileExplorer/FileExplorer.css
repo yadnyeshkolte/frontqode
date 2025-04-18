@@ -1,4 +1,6 @@
 /* src/components/FileExplorer/FileExplorer.css */
+@import url('https://fonts.googleapis.com/icon?family=Material+Icons');
+
 .file-explorer {
     height: 100%;
     display: flex;
@@ -39,11 +41,18 @@
     font-size: 0.9rem;
     padding: 2px 4px;
     border-radius: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .refresh-button:hover {
     background-color: #3a3a3a;
     color: #ffffff;
+}
+
+.refresh-button .material-icons {
+    font-size: 18px;
 }
 
 .file-explorer-search {
@@ -105,6 +114,74 @@
 
 .directory-icon, .file-icon {
     margin-right: 6px;
+    font-size: 18px !important;
+    width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Default icon color */
+.material-icons {
+    color: #cccccc;
+}
+
+/* Define specific file type colors */
+.file-content .file-icon-js {
+    color: #F0DB4F !important; /* JavaScript yellow */
+}
+
+.file-content .file-icon-jsx {
+    color: #61DAFB !important; /* React blue */
+}
+
+.file-content .file-icon-tsx {
+    color: #007acc !important; /* TypeScript blue */
+}
+
+.file-content .file-icon-ts {
+    color: #3178c6 !important; /* TypeScript lighter blue */
+}
+
+.file-content .file-icon-html {
+    color: #E44D26 !important; /* HTML orange */
+}
+
+.file-content .file-icon-css {
+    color: #264DE4 !important; /* CSS blue */
+}
+
+.file-content .file-icon-java {
+    color: #f89820 !important; /* Java orange */
+}
+
+.file-content .file-icon-py {
+    color: #3772A4 !important; /* Python blue */
+}
+
+.file-content .file-icon-json {
+    color: #ffa500 !important; /* JSON orange */
+}
+
+.file-content .file-icon-md {
+    color: #42b883 !important; /* Markdown green */
+}
+
+.file-content .file-icon-svg {
+    color: #FFB13B !important; /* SVG yellow/orange */
+}
+
+.file-content .file-icon-pdf {
+    color: #FF2E2E !important; /* PDF red */
+}
+
+.file-content .file-icon-img {
+    color: lightskyblue !important; /* Image purple */
+}
+
+.file-content .file-icon-zip {
+    color: #607D8B !important; /* Archive gray blue */
 }
 
 .item-name {

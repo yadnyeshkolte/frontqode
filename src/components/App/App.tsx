@@ -71,17 +71,39 @@ const App: React.FC<AppProps> = ({ projectPath }) => {
         };
     }, [activeFile, fileContent]);
 
+    const saveFile = async () => {
+        if (activeFile && isDirty) {
+            try {
+                const result = await fileOpsService.saveFile(activeFile, fileContent);
+
+                if (result.success) {
+                    setIsDirty(false);
+                    // Show a brief success message, maybe through a toast notification or status bar
+                    console.log(`File ${path.basename(activeFile)} saved successfully.`);
+                    return true;
+                } else {
+                    console.error(`Failed to save file: ${result.error}`);
+                    return false;
+                }
+            } catch (error) {
+                console.error('Failed to save file:', error);
+                return false;
+            }
+        }
+        return true; // Return true if no save was needed
+    };
+
+    // Modified openFile to automatically save the current file before switching
     const openFile = async (filePath: string) => {
         try {
-            // Check for unsaved changes first
-            if (activeFile && isDirty) {
-                const confirmSave = window.confirm(
-                    `You have unsaved changes in ${path.basename(activeFile)}. Save before opening a new file?`
-                );
+            // Don't do anything if clicking the same file
+            if (filePath === activeFile) {
+                return;
+            }
 
-                if (confirmSave) {
-                    await saveFile();
-                }
+            // Auto-save: Always save the current file before switching
+            if (activeFile && isDirty) {
+                await saveFile();
             }
 
             const result = await fileOpsService.openFile(filePath);
@@ -101,24 +123,6 @@ const App: React.FC<AppProps> = ({ projectPath }) => {
             }
         } catch (error) {
             console.error('Failed to open file:', error);
-        }
-    };
-
-    const saveFile = async () => {
-        if (activeFile) {
-            try {
-                const result = await fileOpsService.saveFile(activeFile, fileContent);
-
-                if (result.success) {
-                    setIsDirty(false);
-                    // Show a brief success message, maybe through a toast notification or status bar
-                    console.log(`File ${path.basename(activeFile)} saved successfully.`);
-                } else {
-                    console.error(`Failed to save file: ${result.error}`);
-                }
-            } catch (error) {
-                console.error('Failed to save file:', error);
-            }
         }
     };
 
@@ -158,15 +162,9 @@ const App: React.FC<AppProps> = ({ projectPath }) => {
     };
 
     const closeFile = async (filePath: string) => {
-        // Check if file has unsaved changes
+        // Auto-save: Always save the file before closing
         if (filePath === activeFile && isDirty) {
-            const confirmSave = window.confirm(
-                `${path.basename(filePath)} has unsaved changes. Save before closing?`
-            );
-
-            if (confirmSave) {
-                await saveFile();
-            }
+            await saveFile();
         }
 
         // Remove from our service
@@ -293,8 +291,11 @@ const App: React.FC<AppProps> = ({ projectPath }) => {
                     }
                 </div>
                 <div>UTF-8</div>
-                <div onClick={saveFile} style={{ cursor: 'pointer' }}>
-                    Save (Ctrl+S)
+                <div>
+                    <span className="status-message">Auto-save enabled</span>
+                    <span onClick={saveFile} style={{ cursor: 'pointer', marginLeft: '10px' }}>
+                        Save (Ctrl+S)
+                    </span>
                 </div>
             </div>
             <Terminal

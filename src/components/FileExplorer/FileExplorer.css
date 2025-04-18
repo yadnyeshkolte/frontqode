@@ -133,7 +133,7 @@
 }
 
 .file-content .file-icon-jsx {
-    color: #61DAFB !important; /* React blue */
+    color: #F0DB4F !important; /* React blue */
 }
 
 .file-content .file-icon-tsx {
@@ -141,7 +141,7 @@
 }
 
 .file-content .file-icon-ts {
-    color: #3178c6 !important; /* TypeScript lighter blue */
+    color: #007acc !important; /* TypeScript lighter blue */
 }
 
 .file-content .file-icon-html {
@@ -149,23 +149,32 @@
 }
 
 .file-content .file-icon-css {
-    color: #264DE4 !important; /* CSS blue */
+    color: lightblue !important; /* CSS blue */
 }
+
+.file-content .file-icon-scss {
+    color: lightpink !important; /* CSS blue */
+}
+
 
 .file-content .file-icon-java {
-    color: #f89820 !important; /* Java orange */
+    color: darkorange !important; /* Java orange */
 }
 
-.file-content .file-icon-py {
-    color: #3772A4 !important; /* Python blue */
+.file-content .file-icon-rb {
+    color: red !important; /* Python blue */
 }
 
-.file-content .file-icon-json {
-    color: #ffa500 !important; /* JSON orange */
+.file-content .file-icon-rs {
+    color: orangered !important; /* Python blue */
 }
 
-.file-content .file-icon-md {
-    color: #42b883 !important; /* Markdown green */
+.file-content .file-icon-go {
+    color: lightblue !important; /* Python blue */
+}
+
+.file-content .file-icon-php {
+    color: blueviolet !important; /* Python blue */
 }
 
 .file-content .file-icon-svg {

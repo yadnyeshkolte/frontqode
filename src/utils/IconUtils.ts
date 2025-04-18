@@ -12,22 +12,22 @@ export function getFileIconInfo(filePath: string): FileIconInfo {
         // Programming languages
         'java': { icon: 'code', cssClass: 'file-icon-java' },
         'js': { icon: 'javascript', cssClass: 'file-icon-js' },
-        'jsx': { icon: 'code', cssClass: 'file-icon-jsx' },
-        'ts': { icon: 'data_object', cssClass: 'file-icon-ts' },
+        'jsx': { icon: 'integration_instructions', cssClass: 'file-icon-jsx' },
+        'ts': { icon: 'code', cssClass: 'file-icon-ts' },
         'tsx': { icon: 'integration_instructions', cssClass: 'file-icon-tsx' },
         'html': { icon: 'html', cssClass: 'file-icon-html' },
-        'css': { icon: 'style', cssClass: 'file-icon-css' },
+        'css': { icon: 'css', cssClass: 'file-icon-css' },
         'scss': { icon: 'style', cssClass: 'file-icon-css' },
-        'less': { icon: 'style', cssClass: 'file-icon-css' },
-        'json': { icon: 'data_object', cssClass: 'file-icon-json' },
+        'less': { icon: 'style', cssClass: 'file-icon-less' },
+        'json': { icon: 'file_json', cssClass: 'file-icon-json' },
         'py': { icon: 'code', cssClass: 'file-icon-py' },
         'rb': { icon: 'code', cssClass: 'file-icon-rb' },
-        'php': { icon: 'code', cssClass: 'file-icon-php' },
+        'php': { icon: 'php', cssClass: 'file-icon-php' },
         'go': { icon: 'code', cssClass: 'file-icon-go' },
         'rs': { icon: 'code', cssClass: 'file-icon-rs' },
 
         // Documents
-        'md': { icon: 'article', cssClass: 'file-icon-md' },
+        'md': { icon: 'markdown', cssClass: 'file-icon-md' },
         'txt': { icon: 'text_snippet', cssClass: 'file-icon-txt' },
         'pdf': { icon: 'picture_as_pdf', cssClass: 'file-icon-pdf' },
         'doc': { icon: 'description', cssClass: 'file-icon-doc' },
@@ -47,8 +47,8 @@ export function getFileIconInfo(filePath: string): FileIconInfo {
         'gz': { icon: 'folder_zip', cssClass: 'file-icon-zip' },
 
         // Config files
-        'gitignore': { icon: 'settings', cssClass: 'file-icon-git' },
-        'env': { icon: 'settings', cssClass: 'file-icon-env' },
+        'gitignore': { icon: 'hide_source', cssClass: 'file-icon-git' },
+        'env': { icon: 'key', cssClass: 'file-icon-env' },
         'yml': { icon: 'settings', cssClass: 'file-icon-yml' },
         'yaml': { icon: 'settings', cssClass: 'file-icon-yml' },
     };

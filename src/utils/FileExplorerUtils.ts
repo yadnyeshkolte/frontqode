@@ -56,7 +56,7 @@ export const defaultExpandedState = (item: FileTreeItem): boolean => {
         // Haskell
         "haskell": ["dist", "dist-newstyle", ".stack-work", ".HTF", ".hpc", ".cabal-sandbox", ".hsenv", ".stack-work", ".hie"],
         // Common/General - applies to all projects
-        "common": [".git", "logs", ".idea", ".vscode", ".vs", ".vagrant", ".pytest_cache", "coverage", ".nyc_output", "tmp", "temp"]
+        "common": [".webpack","out", ".git", "logs", ".idea", ".vscode", ".vs", ".vagrant", ".pytest_cache", "coverage", ".nyc_output", "tmp", "temp"]
     };
 
     // Check if directory should be collapsed by default

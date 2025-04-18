@@ -2,7 +2,6 @@
 import { spawn, ChildProcess } from 'child_process';
 import * as path from 'path';
 import * as fs from 'fs';
-import * as net from 'net';
 import { getAppDataPath } from '../utils/appPaths';
 
 interface LanguageServer {
@@ -48,7 +47,7 @@ class LanguageServerService {
         // Check if server is already running
         if (this.servers.has(languageId)) {
             return {
-                port: this.servers.get(languageId)!.port,
+                port: this.servers.get(languageId)?.port,
                 languageId
             };
         }

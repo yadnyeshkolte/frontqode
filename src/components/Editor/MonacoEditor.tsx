@@ -6,7 +6,7 @@ import * as path from 'path';
 
 // Initialize Monaco environment
 self.MonacoEnvironment = {
-    getWorkerUrl: function (moduleId, label) {
+    getWorkerUrl: function (_moduleId, label) {
         if (label === 'json') {
             return './json.worker.js';
         }

@@ -1,7 +1,6 @@
 import type { Configuration } from 'webpack';
 
 import { rules } from './webpack.rules';
-import { plugins } from './webpack.plugins';
 import MonacoWebpackPlugin from 'monaco-editor-webpack-plugin';
 
 rules.push({

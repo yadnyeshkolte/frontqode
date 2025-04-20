@@ -16,15 +16,20 @@ const config: ForgeConfig = {
     asar: true,
   },
   rebuildConfig: {},
-  makers: [new MakerSquirrel({}), new MakerZIP({}, ['darwin']), {
-    name: '@electron-forge/maker-deb',
-    config: {
-      options: {
-        maintainer: 'Yadnyesh Kolte',
-        homepage: 'https://yadnyeshkolte.github.io',
+  makers: [
+    new MakerSquirrel({}),
+    new MakerZIP({}, ['darwin']),
+    new MakerDeb({}),
+    {
+      name: '@electron-forge/maker-deb',
+      config: {
+        options: {
+          maintainer: 'Yadnyesh Kolte',
+          homepage: 'https://yadnyeshkolte.github.io',
+        }
       }
     }
-  }, new MakerDeb({})],
+  ],
   plugins: [
     new AutoUnpackNativesPlugin({}),
     new WebpackPlugin({
@@ -42,7 +47,11 @@ const config: ForgeConfig = {
           },
         ],
       },
+
+      // Add webpack plugins and CSP configuration from AI recommendation
+      devContentSecurityPolicy: "connect-src 'self' ws: wss: http: https:; script-src 'self' 'unsafe-eval' 'unsafe-inline' blob:; worker-src blob:",
     }),
+
     // Fuses are used to enable/disable various Electron functionality
     // at package time, before code signing the application
     new FusesPlugin({

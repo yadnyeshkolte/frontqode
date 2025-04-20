@@ -47,6 +47,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
     terminalGetHistory: () => ipcRenderer.invoke('terminal-get-history'),
 
     // LSP operations
+    getAvailableLanguageServers: () => ipcRenderer.invoke('get-available-language-servers'),
+    isLSPServerInstalled: (languageId: string) => ipcRenderer.invoke('is-lsp-server-installed', languageId),
     getLSPServerInfo: (languageId: string) => ipcRenderer.invoke('get-lsp-server-info', languageId),
     stopLSPServer: (languageId: string) => ipcRenderer.invoke('stop-lsp-server', languageId),
     installLSPServer: (languageId: string) => ipcRenderer.invoke('install-lsp-server', languageId),

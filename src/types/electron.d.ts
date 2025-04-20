@@ -37,7 +37,9 @@ interface ElectronAPI {
 
     // LSP operations
     getLSPServerInfo: (languageId: string) =>
-        Promise<{ success: boolean; port?: number; languageId?: string; error?: string }>;
+        Promise<{
+            isInstalled: boolean;
+            success: boolean; port?: number; languageId?: string; error?: string }>;
     stopLSPServer: (languageId: string) =>
         Promise<{ success: boolean; error?: string }>;
     installLSPServer: (languageId: string) =>
@@ -87,6 +89,13 @@ interface ElectronAPI {
     getRecentFiles: () => Promise<string[]>;
     addRecentFile: (filePath: string) => Promise<{ success: boolean }>;
     clearRecentFiles: () => Promise<{ success: boolean }>;
+    async
+
+    getAvailableLanguageServers: () => Promise<{
+        success: boolean;
+        servers?: never[]; // You might want to define a more specific type here
+        error?: string
+    }>;
 }
 
 interface Window {

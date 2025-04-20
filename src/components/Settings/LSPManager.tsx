@@ -15,64 +15,32 @@ interface LanguageServer {
 }
 
 const LSPManager: React.FC<LSPManagerProps> = ({ onClose }) => {
-    const [servers, setServers] = useState<LanguageServer[]>([
-        {
-            id: 'typescript',
-            name: 'TypeScript/JavaScript',
-            description: 'Language server for TypeScript and JavaScript (typescript-language-server)',
-            installed: false,
-            installing: false
-        },
-        {
-            id: 'html',
-            name: 'HTML',
-            description: 'Language server for HTML (vscode-html-languageserver)',
-            installed: false,
-            installing: false
-        },
-        {
-            id: 'css',
-            name: 'CSS',
-            description: 'Language server for CSS (vscode-css-languageserver)',
-            installed: false,
-            installing: false
-        },
-        {
-            id: 'json',
-            name: 'JSON',
-            description: 'Language server for JSON (vscode-json-languageserver)',
-            installed: false,
-            installing: false
-        },
-        {
-            id: 'python',
-            name: 'Python',
-            description: 'Language server for Python (python-language-server)',
-            installed: false,
-            installing: false
-        }
-    ]);
+    const [servers, setServers] = useState<LanguageServer[]>([]);
+    const [isLoading, setIsLoading] = useState<boolean>(true);
 
     useEffect(() => {
-        // Check which servers are installed
-        const checkInstalledServers = async () => {
-            const updatedServers = [...servers];
+        // Get available servers and their installation status
+        const fetchServers = async () => {
+            try {
+                setIsLoading(true);
+                const availableServers = await window.electronAPI.getAvailableLanguageServers();
 
-            for (let i = 0; i < updatedServers.length; i++) {
-                const server = updatedServers[i];
-                try {
-                    // This is a placeholder. In a real app, you'd check if the server is actually installed
-                    const serverInfo = await window.electronAPI.getLSPServerInfo(server.id);
-                    updatedServers[i].installed = serverInfo.success;
-                } catch (error) {
-                    console.error(`Error checking server ${server.id}:`, error);
+                if (availableServers.success) {
+                    setServers(availableServers.servers.map((server: any) => ({
+                        ...server,
+                        installing: false
+                    })));
+                } else {
+                    console.error('Failed to fetch language servers:', availableServers.error);
                 }
+            } catch (error) {
+                console.error('Error fetching language servers:', error);
+            } finally {
+                setIsLoading(false);
             }
-
-            setServers(updatedServers);
         };
 
-        checkInstalledServers();
+        fetchServers();
     }, []);
 
     const installServer = async (serverId: string) => {
@@ -90,6 +58,14 @@ const LSPManager: React.FC<LSPManagerProps> = ({ onClose }) => {
                     ? { ...server, installing: false, installed: result.success }
                     : server
             ));
+
+            // Show notification
+            if (result.success) {
+                // In a real app, you might want to use a toast notification system
+                console.log(`Successfully installed ${serverId} language server`);
+            } else {
+                console.error(`Failed to install ${serverId} language server`);
+            }
         } catch (error) {
             console.error(`Error installing server ${serverId}:`, error);
 
@@ -109,30 +85,34 @@ const LSPManager: React.FC<LSPManagerProps> = ({ onClose }) => {
             <div className="lsp-manager-content">
                 <p>Install language servers to enable code intelligence features like auto-completion, diagnostics, and hover information.</p>
 
-                <div className="server-list">
-                    {servers.map(server => (
-                        <div key={server.id} className="server-item">
-                            <div className="server-info">
-                                <h3>{server.name}</h3>
-                                <p>{server.description}</p>
+                {isLoading ? (
+                    <div className="loading">Loading servers...</div>
+                ) : (
+                    <div className="server-list">
+                        {servers.map(server => (
+                            <div key={server.id} className="server-item">
+                                <div className="server-info">
+                                    <h3>{server.name}</h3>
+                                    <p>{server.description}</p>
+                                </div>
+                                <div className="server-actions">
+                                    {server.installed ? (
+                                        <div className="server-status installed">Installed</div>
+                                    ) : server.installing ? (
+                                        <div className="server-status installing">Installing...</div>
+                                    ) : (
+                                        <button
+                                            className="install-button"
+                                            onClick={() => installServer(server.id)}
+                                        >
+                                            Install
+                                        </button>
+                                    )}
+                                </div>
                             </div>
-                            <div className="server-actions">
-                                {server.installed ? (
-                                    <div className="server-status installed">Installed</div>
-                                ) : server.installing ? (
-                                    <div className="server-status installing">Installing...</div>
-                                ) : (
-                                    <button
-                                        className="install-button"
-                                        onClick={() => installServer(server.id)}
-                                    >
-                                        Install
-                                    </button>
-                                )}
-                            </div>
-                        </div>
-                    ))}
-                </div>
+                        ))}
+                    </div>
+                )}
             </div>
         </div>
     );

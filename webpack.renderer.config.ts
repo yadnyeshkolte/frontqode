@@ -1,31 +1,34 @@
 import type { Configuration } from 'webpack';
-
 import { rules } from './webpack.rules';
-import MonacoWebpackPlugin from 'monaco-editor-webpack-plugin';
-
-rules.push({
-  test: /\.css$/,
-  use: [{ loader: 'style-loader' }, { loader: 'css-loader' }],
-});
+import { plugins } from './webpack.plugins';
+import MonacoWebpackPlugin = require('monaco-editor-webpack-plugin');
 
 export const rendererConfig: Configuration = {
   module: {
-    rules,
+    rules: [
+      ...rules,
+      {
+        test: /\.css$/,
+        use: [{ loader: 'style-loader' }, { loader: 'css-loader' }],
+      },
+      {
+        test: /\.ttf$/,
+        type: 'asset/resource',
+      },
+    ],
   },
   plugins: [
-    // Your existing plugins...
-
-    // Add the Monaco webpack plugin
+    ...plugins,
     new MonacoWebpackPlugin({
       languages: ['javascript', 'typescript', 'html', 'css', 'json', 'markdown',
         'python', 'java', 'cpp', 'csharp', 'go', 'php', 'ruby', 'rust', 'swift'],
-      features: ['!gotoSymbol']
-    })
+      features: ['bracketMatching', 'caretOperations', 'clipboard', 'colorPicker', 'comment', 'find', 'folding', 'format', 'hover', 'inPlaceReplace', 'smartSelect', 'snippet', 'suggest', '!gotoSymbol'],
+    }),
   ],
   resolve: {
     extensions: ['.js', '.ts', '.jsx', '.tsx', '.css'],
     fallback: {
-      "path": require.resolve("path-browserify")
-    }
+      path: require.resolve('path-browserify'),
+    },
   },
 };

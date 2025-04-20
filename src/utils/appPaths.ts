@@ -1,19 +1,39 @@
 // src/utils/appPaths.ts
 import * as path from 'path';
+import * as os from 'os';
+import * as fs from 'fs';
 import { app } from 'electron';
 
-export function getAppDataPath(): string {
-    return app.getPath('userData');
-}
+// Get the application data directory
+export const getAppDataPath = (): string => {
+    // Use Electron's app.getPath('userData') if available
+    if (app) {
+        return app.getPath('userData');
+    }
 
-export function getProjectsPath(): string {
-    return path.join(getAppDataPath(), 'projects');
-}
+    // Otherwise fallback to platform-specific paths
+    const appName = 'code-editor';
 
-export function getExtensionsPath(): string {
-    return path.join(getAppDataPath(), 'extensions');
-}
+    switch (process.platform) {
+        case 'win32':
+            return path.join(process.env.APPDATA || '', appName);
+        case 'darwin':
+            return path.join(os.homedir(), 'Library', 'Application Support', appName);
+        case 'linux':
+            return path.join(os.homedir(), '.config', appName);
+        default:
+            return path.join(os.homedir(), '.config', appName);
+    }
+};
 
-export function getLanguageServersPath(): string {
-    return path.join(getAppDataPath(), 'language-servers');
-}
+// Get the projects directory
+export const getProjectsDir = (): string => {
+    const projectsDir = path.join(getAppDataPath(), 'projects');
+
+    // Ensure the directory exists
+    if (!fs.existsSync(projectsDir)) {
+        fs.mkdirSync(projectsDir, { recursive: true });
+    }
+
+    return projectsDir;
+};

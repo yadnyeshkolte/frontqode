@@ -1,8 +1,11 @@
 // src/components/Editor/MonacoEditor.tsx
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import * as monaco from 'monaco-editor';
 import { editor } from 'monaco-editor';
-import * as path from 'path';
+import { MonacoLanguageClient } from 'monaco-languageclient';
+import {CloseAction, CloseHandlerResult, ErrorAction, ErrorHandlerResult} from 'vscode-languageclient';
+import {Message, toSocket, WebSocketMessageReader, WebSocketMessageWriter} from '@codingame/monaco-jsonrpc';
+import path from "path";
 
 // Initialize Monaco environment
 self.MonacoEnvironment = {
@@ -28,16 +31,34 @@ interface MonacoEditorProps {
     content: string;
     onChange: (content: string) => void;
     onSave: () => void;
+    projectRoot?: string; // Add project root for workspace context
 }
 
-const MonacoEditor: React.FC<MonacoEditorProps> = ({ filePath, content, onChange, onSave }) => {
+const MonacoEditor: React.FC<MonacoEditorProps> = ({
+                                                       filePath,
+                                                       content,
+                                                       onChange,
+                                                       onSave,
+                                                       projectRoot
+                                                   }) => {
     const editorRef = useRef<HTMLDivElement>(null);
     const monacoEditorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
+    const langClientRef = useRef<MonacoLanguageClient | null>(null);
+    const [lspStatus, setLSPStatus] = useState<string>('');
+
+    // Function to clean up any existing language client
+    const cleanupLanguageClient = () => {
+        if (langClientRef.current) {
+            langClientRef.current.stop();
+            langClientRef.current = null;
+        }
+    };
 
     // Set up editor when component mounts or filePath changes
     useEffect(() => {
         // Clean up any existing editor before creating a new one
         if (monacoEditorRef.current) {
+            cleanupLanguageClient();
             monacoEditorRef.current.dispose();
             monacoEditorRef.current = null;
         }
@@ -73,10 +94,24 @@ const MonacoEditor: React.FC<MonacoEditorProps> = ({ filePath, content, onChange
                 language = languageMap[ext];
             }
 
+            // Set up workspace context if project root is provided
+            if (projectRoot) {
+                monaco.editor.createModel('', 'plaintext', monaco.Uri.parse('file:///workspace.json'));
+            }
+
+            // Create editor model with URI based on file path
+            const uri = monaco.Uri.file(filePath);
+            let model = monaco.editor.getModel(uri);
+
+            if (!model) {
+                model = monaco.editor.createModel(content, language, uri);
+            } else {
+                model.setValue(content);
+            }
+
             // Create editor
             monacoEditorRef.current = monaco.editor.create(editorRef.current, {
-                value: content,
-                language,
+                model,
                 theme: 'vs-dark',
                 automaticLayout: true,
                 minimap: {
@@ -89,6 +124,8 @@ const MonacoEditor: React.FC<MonacoEditorProps> = ({ filePath, content, onChange
                 roundedSelection: false,
                 selectOnLineNumbers: true,
                 wordWrap: 'on',
+                quickSuggestions: true,
+                suggestOnTriggerCharacters: true,
             });
 
             // Set up editor change event
@@ -103,14 +140,15 @@ const MonacoEditor: React.FC<MonacoEditorProps> = ({ filePath, content, onChange
             });
 
             // Set up LSP if needed for this file type
-            if (['typescript', 'javascript', 'html', 'css', 'json'].includes(language)) {
-                setupLSP(language).then(r => {console.log(r);});
+            if (['typescript', 'javascript', 'html', 'css', 'json', 'python'].includes(language)) {
+                setupLSP(language, uri).catch(console.error);
             }
         }
 
         // Clean up editor when component unmounts or when filePath changes
         return () => {
             if (monacoEditorRef.current) {
+                cleanupLanguageClient();
                 monacoEditorRef.current.dispose();
                 monacoEditorRef.current = null;
             }
@@ -134,38 +172,99 @@ const MonacoEditor: React.FC<MonacoEditorProps> = ({ filePath, content, onChange
     }, [content]);
 
     // Set up LSP connection for the editor
-    const setupLSP = async (language: string) => {
+    const setupLSP = async (language: string, documentUri: monaco.Uri) => {
         try {
-            // This is where you would connect to a language server
-            // You'll need to implement this separately for each language
-            // For example, for TypeScript you might use typescript-language-server
+            setLSPStatus(`Connecting to ${language} language server...`);
 
-            // This is a placeholder for the actual LSP connection setup
+            // Get info about language server from the main process
             const serverInfo = await window.electronAPI.getLSPServerInfo(language);
 
             if (!serverInfo?.success) {
-                console.error(`No LSP server available for ${language}`);
+                if (serverInfo?.isInstalled === false) {
+                    setLSPStatus(`${language} language server is not installed. Please install it from the LSP Manager.`);
+                } else {
+                    setLSPStatus(`Failed to connect to ${language} language server: ${serverInfo?.error || 'Unknown error'}`);
+                }
                 return;
             }
 
-            // Create Monaco services and connect to language server
-            const { port, languageId } = serverInfo;
+            // Create WebSocket connection to language server
+            const webSocketUrl = `ws://localhost:${serverInfo.port}/${language}`;
+            const webSocket = new WebSocket(webSocketUrl);
+            const socket = toSocket(webSocket);
+            const reader = new WebSocketMessageReader(socket);
+            const writer = new WebSocketMessageWriter(socket);
 
-            // This is simplified - you'd need to implement the actual connection
-            console.log(`LSP connected for ${languageId} on port ${port}`);
+            // Create language client
+
+
+            const languageClient = new MonacoLanguageClient({
+                messageTransports: undefined,
+                name: `${language} Language Client`,
+                clientOptions: {
+                    // Use a unique document selector for the language
+                    documentSelector: [{ language }],
+                    // Don't restart the server on error
+                    errorHandler: {
+                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                        // @ts-ignore
+                        error: () => ErrorAction.Continue,
+                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                        // @ts-ignore
+                        closed: () => CloseAction.DoNotRestart
+                    },
+                    // Correctly specify workspace folder if available
+                    workspaceFolder: projectRoot ? {
+                        uri: monaco.Uri.file(projectRoot),
+                        name: path.basename(projectRoot),
+                        index: 0
+                    } : undefined,
+                },
+                // Create a connection to the server using the WebSocket
+                connectionProvider: {
+                    get: () => {
+                        return {
+                            reader,
+                            writer
+                        };
+                    }
+                }
+            });
+
+            // Start the language client
+            await languageClient.start();
+            langClientRef.current = languageClient;
+
+            setLSPStatus(`Connected to ${language} language server`);
+
+            // Set up cleanup when WebSocket closes
+            webSocket.onclose = () => {
+                setLSPStatus(`Disconnected from ${language} language server`);
+                cleanupLanguageClient();
+            };
+
         } catch (error) {
             console.error('Failed to set up LSP:', error);
+            setLSPStatus(`Error connecting to language server: ${error.message}`);
         }
     };
 
     return (
-        <div
-            ref={editorRef}
-            style={{
-                width: '100%',
-                height: '100%'
-            }}
-        />
+        <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+            {lspStatus && (
+                <div className="lsp-status-bar">
+                    <span>{lspStatus}</span>
+                </div>
+            )}
+            <div
+                ref={editorRef}
+                style={{
+                    width: '100%',
+                    height: '100%',
+                    flexGrow: 1
+                }}
+            />
+        </div>
     );
 };
 

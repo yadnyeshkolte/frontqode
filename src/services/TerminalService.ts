@@ -3,7 +3,6 @@ import { exec, spawn } from 'child_process';
 import * as os from 'os';
 import * as path from 'path';
 import { promisify } from 'util';
-import { ipcMain } from 'electron';
 import * as fs from "node:fs";
 
 const execAsync = promisify(exec);
@@ -17,7 +16,7 @@ interface TerminalOutput {
 
 class TerminalService {
     private currentDir: string;
-    private shell: string;
+    private readonly shell: string;
     private outputHistory: TerminalOutput[] = [];
     private gitBranch: string | null = null;
 
@@ -31,14 +30,6 @@ class TerminalService {
             this.shell = process.env.SHELL || '/bin/bash';
         }
     }
-
-    /**
-     * Initializes the terminal with a specific directory
-     */
-    async initializeWithDirectory(directory: string): Promise<{ success: boolean; path?: string; error?: string }> {
-        return this.changeDirectory(directory);
-    }
-
     /**
      * Gets the current working directory
      */

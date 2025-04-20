@@ -69,24 +69,6 @@ if (container) {
             })
         );
 
-        removeMenuEventListeners.push(
-            window.electronAPI.onMenuNewProject(() => {
-                setIsProjectDialogOpen(true);
-            })
-        );
-
-        removeMenuEventListeners.push(
-            window.electronAPI.onMenuOpenProject((projectPath) => {
-                handleNewProject(projectPath);
-            })
-        );
-
-        removeMenuEventListeners.push(
-            window.electronAPI.onMenuCloneRepo(() => {
-                setIsCloneRepoDialogOpen(true);
-            })
-        );
-
         // Add other menu handlers for the App component as needed
     };
 

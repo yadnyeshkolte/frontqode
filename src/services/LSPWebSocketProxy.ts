@@ -89,41 +89,6 @@ class LSPWebSocketProxy {
             });
         });
     }
-
-    // Register a language server process
-    public registerServerProcess(languageId: string, process: ChildProcess): void {
-        this.serverProcesses.set(languageId, process);
-
-        // Forward stdout from language server to all connected clients
-        if (process.stdout) {
-            process.stdout.on('data', (data: Buffer) => {
-                const clients = this.connections.get(languageId);
-                if (clients) {
-                    for (const client of clients) {
-                        if (client.readyState === WebSocket.OPEN) {
-                            client.send(data);
-                        }
-                    }
-                }
-            });
-        }
-
-        // Handle process exit
-        process.on('exit', () => {
-            console.log(`Language server process for ${languageId} exited`);
-            this.serverProcesses.delete(languageId);
-
-            // Close all connections for this language
-            const clients = this.connections.get(languageId);
-            if (clients) {
-                for (const client of clients) {
-                    client.close();
-                }
-                this.connections.delete(languageId);
-            }
-        });
-    }
-
     // Stop a language server process
     private stopServerProcess(languageId: string): void {
         const process = this.serverProcesses.get(languageId);

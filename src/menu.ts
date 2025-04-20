@@ -1,5 +1,5 @@
 // src/menu.ts
-import { app, Menu, BrowserWindow, dialog, shell } from 'electron';
+import { Menu, BrowserWindow, dialog, shell } from 'electron';
 import FileSystemService from './services/FileSystemService';
 
 const fileSystemService = new FileSystemService();
@@ -222,7 +222,10 @@ export function setupApplicationMenu(mainWindow: BrowserWindow) {
                             message: 'Front Qode IDE v1.0.0',
                             detail: 'A lightweight IDE for front-end development.\nCreated with Electron.',
                             buttons: ['OK']
+                        }).then(() => {
+                            //no action needed
                         });
+
                     }
                 }
             ]

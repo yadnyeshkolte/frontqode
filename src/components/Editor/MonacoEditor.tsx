@@ -3,8 +3,8 @@ import React, { useEffect, useRef, useState } from 'react';
 import * as monaco from 'monaco-editor';
 import { editor } from 'monaco-editor';
 import { MonacoLanguageClient } from 'monaco-languageclient';
-import {CloseAction, CloseHandlerResult, ErrorAction, ErrorHandlerResult} from 'vscode-languageclient';
-import {Message, toSocket, WebSocketMessageReader, WebSocketMessageWriter} from '@codingame/monaco-jsonrpc';
+import {CloseAction, ErrorAction} from 'vscode-languageclient';
+import {toSocket, WebSocketMessageReader, WebSocketMessageWriter} from '@codingame/monaco-jsonrpc';
 import path from "path";
 
 // Initialize Monaco environment
@@ -49,7 +49,7 @@ const MonacoEditor: React.FC<MonacoEditorProps> = ({
     // Function to clean up any existing language client
     const cleanupLanguageClient = () => {
         if (langClientRef.current) {
-            langClientRef.current.stop();
+            langClientRef.current.stop().catch(console.error);
             langClientRef.current = null;
         }
     };
@@ -176,8 +176,12 @@ const MonacoEditor: React.FC<MonacoEditorProps> = ({
         try {
             setLSPStatus(`Connecting to ${language} language server...`);
 
+            // More detailed logging
+            console.log(`Setting up LSP for ${language} at ${documentUri.toString()}`);
+
             // Get info about language server from the main process
             const serverInfo = await window.electronAPI.getLSPServerInfo(language);
+            console.log(`Server info for ${language}:`, serverInfo);
 
             if (!serverInfo?.success) {
                 if (serverInfo?.isInstalled === false) {
@@ -190,61 +194,80 @@ const MonacoEditor: React.FC<MonacoEditorProps> = ({
 
             // Create WebSocket connection to language server
             const webSocketUrl = `ws://localhost:${serverInfo.port}/${language}`;
+            console.log(`Connecting to WebSocket at ${webSocketUrl}`);
             const webSocket = new WebSocket(webSocketUrl);
+
+            // Handle WebSocket errors
+            webSocket.onerror = (error) => {
+                console.error(`WebSocket error for ${language}:`, error);
+                setLSPStatus(`WebSocket connection error for ${language} language server`);
+            };
+
+            webSocket.onopen = () => {
+                console.log(`WebSocket connection established for ${language}`);
+                setLSPStatus(`Connected to ${language} language server`);
+            };
+
+            // Continue with your existing code...
             const socket = toSocket(webSocket);
             const reader = new WebSocketMessageReader(socket);
             const writer = new WebSocketMessageWriter(socket);
 
-            // Create language client
+            // Create a more robust language client with better error handling
+            try {
 
-
-            const languageClient = new MonacoLanguageClient({
-                messageTransports: undefined,
-                name: `${language} Language Client`,
-                clientOptions: {
-                    // Use a unique document selector for the language
-                    documentSelector: [{ language }],
-                    // Don't restart the server on error
-                    errorHandler: {
-                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                        // @ts-ignore
-                        error: () => ErrorAction.Continue,
-                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                        // @ts-ignore
-                        closed: () => CloseAction.DoNotRestart
+                const languageClient = new MonacoLanguageClient({
+                    name: `${language} Language Client`,
+                    clientOptions: {
+                        documentSelector: [{ language }],
+                        errorHandler: {
+                            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                            // @ts-ignore
+                            error: () => {
+                                console.log(`Error in ${language} language client`);
+                                return ErrorAction.Continue;
+                            },
+                            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                            // @ts-ignore
+                            closed: () => {
+                                console.log(`Connection closed for ${language} language client`);
+                                return CloseAction.DoNotRestart;
+                            }
+                        },
+                        workspaceFolder: projectRoot ? {
+                            uri: monaco.Uri.file(projectRoot),
+                            name: path.basename(projectRoot),
+                            index: 0
+                        } : undefined,
                     },
-                    // Correctly specify workspace folder if available
-                    workspaceFolder: projectRoot ? {
-                        uri: monaco.Uri.file(projectRoot),
-                        name: path.basename(projectRoot),
-                        index: 0
-                    } : undefined,
-                },
-                // Create a connection to the server using the WebSocket
-                connectionProvider: {
-                    get: () => {
-                        return {
-                            reader,
-                            writer
-                        };
+                    connectionProvider: {
+                        get: () => {
+                            return Promise.resolve({
+                                reader,
+                                writer
+                            });
+                        }
                     }
-                }
-            });
+                });
 
-            // Start the language client
-            await languageClient.start();
-            langClientRef.current = languageClient;
+                console.log(`Starting ${language} language client...`);
+                await languageClient.start();
+                langClientRef.current = languageClient;
+                console.log(`${language} language client started successfully`);
 
-            setLSPStatus(`Connected to ${language} language server`);
-
-            // Set up cleanup when WebSocket closes
-            webSocket.onclose = () => {
-                setLSPStatus(`Disconnected from ${language} language server`);
-                cleanupLanguageClient();
-            };
-
+                // Set up cleanup when WebSocket closes
+                webSocket.onclose = (event) => {
+                    console.log(`WebSocket connection closed for ${language} with code ${event.code}`);
+                    setLSPStatus(`Disconnected from ${language} language server`);
+                    cleanupLanguageClient();
+                };
+            } catch (error) {
+                console.error(`Error creating language client for ${language}:`, error);
+                setLSPStatus(`Error creating language client: ${error.message}`);
+                webSocket.close();
+            }
         } catch (error) {
-            console.error('Failed to set up LSP:', error);
+            console.error(`Failed to set up LSP for ${language}:`, error);
             setLSPStatus(`Error connecting to language server: ${error.message}`);
         }
     };

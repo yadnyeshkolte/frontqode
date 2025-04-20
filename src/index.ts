@@ -52,7 +52,9 @@ const createWindow = (): void => {
   });
 
   // and load the index.html of the app.
-  mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY).then(r => {});
+  mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY).then(() => {
+    console.log('Window loaded successfully');
+  });
 
   // Open the DevTools in development mode
   if (isDev) {

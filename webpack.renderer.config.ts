@@ -23,7 +23,8 @@ export const rendererConfig: Configuration = {
       languages: ['javascript', 'typescript', 'html', 'css', 'json', 'markdown',
         'python', 'java', 'cpp', 'csharp', 'go', 'php', 'ruby', 'rust', 'swift'],
       features: ['bracketMatching', 'caretOperations', 'clipboard', 'colorPicker', 'comment', 'find', 'folding', 'format', 'hover', 'inPlaceReplace', 'smartSelect', 'snippet', 'suggest', '!gotoSymbol'],
-    }),
+      filename: '[name].worker.js', // Make sure this is explicitly set
+    })
   ],
   resolve: {
     extensions: ['.js', '.ts', '.jsx', '.tsx', '.css'],

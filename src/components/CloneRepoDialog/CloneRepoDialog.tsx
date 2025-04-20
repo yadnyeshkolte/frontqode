@@ -16,7 +16,9 @@ const CloneRepoDialog: React.FC<CloneRepoDialogProps> = ({ isOpen, onClose, onCo
     const [isChecking, setIsChecking] = useState(true);
 
     useEffect(() => {
-        checkGitInstallation();
+        checkGitInstallation().then(() => {
+            //will add later
+        });
     }, [isOpen]);
 
     useEffect(() => {
@@ -32,7 +34,7 @@ const CloneRepoDialog: React.FC<CloneRepoDialogProps> = ({ isOpen, onClose, onCo
                 setProjectName(name);
             } catch (err) {
                 // Not a valid URL, try to extract from common Git formats
-                const sshMatch = repoUrl.match(/:([^\/]+)\/([^\/]+)\.git$/);
+                const sshMatch = repoUrl.match(/:([^/]+)\/([^/]+)\.git$/);
                 if (sshMatch && sshMatch[2]) {
                     setProjectName(sshMatch[2]);
                 }

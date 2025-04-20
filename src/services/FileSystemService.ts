@@ -1,5 +1,5 @@
 // src/services/FileSystemService.ts
-import { app, dialog } from 'electron';
+import { dialog } from 'electron';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';

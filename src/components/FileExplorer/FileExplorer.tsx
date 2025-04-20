@@ -20,7 +20,7 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ projectPath, onFileOpen }) 
     const [fileTree, setFileTree] = useState<FileTreeItem[]>([]);
     const [searchTerm, setSearchTerm] = useState<string>('');
     const resizeHandleRef = useRef<HTMLDivElement>(null);
-    const sidebarRef = useRef<HTMLDivElement>(null);
+    useRef<HTMLDivElement>(null);
     const fileExplorerRef = useRef<HTMLDivElement>(null);
 
     // Function to load file tree
@@ -72,7 +72,9 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ projectPath, onFileOpen }) 
     // Load file tree on component mount or when project path changes
     useEffect(() => {
         if (projectPath) {
-            loadFileTree();
+            loadFileTree().then(() => {
+                //will add later
+            });
         }
     }, [projectPath]);
 
@@ -85,7 +87,7 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ projectPath, onFileOpen }) 
 
         let isResizing = false;
 
-        const startResize = (e: MouseEvent) => {
+        const startResize = () => {
             isResizing = true;
             document.addEventListener('mousemove', resize);
             document.addEventListener('mouseup', stopResize);

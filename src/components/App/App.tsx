@@ -21,7 +21,7 @@ const App: React.FC<AppProps> = ({ projectPath }) => {
     const [isTerminalExpanded, setIsTerminalExpanded] = useState<boolean>(true);
     const sidebarRef = useRef<HTMLDivElement>(null);
     const [isLSPManagerOpen, setIsLSPManagerOpen] = useState<boolean>(false);
-    const [editorKey, setEditorKey] = useState<number>(0); // Add a key to force re-render of editor
+    const [editorKey] = useState<number>(0); // Add a key to force re-render of editor
     const fileOpsService = useRef(new FileOperationsService()).current;
 
     // Load project data when the project path changes
@@ -32,7 +32,9 @@ const App: React.FC<AppProps> = ({ projectPath }) => {
             setProjectName(name);
 
             // Change terminal directory to project path
-            window.electronAPI.terminalChangeDirectory(projectPath);
+            window.electronAPI.terminalChangeDirectory(projectPath).then(() => {
+                //will add later
+            });
 
             // Look for a readme.md file to open by default
             const readmePath = path.join(projectPath, 'readme.md');
@@ -41,7 +43,9 @@ const App: React.FC<AppProps> = ({ projectPath }) => {
                 window.electronAPI.readFile(readmePath)
                     .then(result => {
                         if (result.success) {
-                            openFile(readmePath);
+                            openFile(readmePath).then(() => {
+                                //will add later
+                            });
                         }
                     })
                     .catch(() => {
@@ -58,7 +62,9 @@ const App: React.FC<AppProps> = ({ projectPath }) => {
         // Handle app-save-file custom event (for menu integration)
         const handleAppSaveFile = () => {
             if (activeFile) {
-                saveFile();
+                saveFile().then(() => {
+                    // will add later
+                });
             }
         };
 
@@ -178,7 +184,7 @@ const App: React.FC<AppProps> = ({ projectPath }) => {
         if (activeFile === filePath) {
             if (newOpenFiles.length > 0) {
                 // Open the first file in the list
-                openFile(newOpenFiles[0]);
+                await openFile(newOpenFiles[0]);
             } else {
                 // No files left open
                 setActiveFile(null);
@@ -200,11 +206,15 @@ const App: React.FC<AppProps> = ({ projectPath }) => {
 
     useEffect(() => {
         const removeSaveFileListener = window.electronAPI.onMenuSaveFile(() => {
-            saveFile();
+            saveFile().then(() => {
+                //will add later
+            });
         });
 
         const removeSaveFileAsListener = window.electronAPI.onMenuSaveFileAs(() => {
-            saveFileAs();
+            saveFileAs().then(() => {
+                //will add later
+            });
         });
 
         // Add proper keyboard shortcut handler for the whole app
@@ -212,13 +222,17 @@ const App: React.FC<AppProps> = ({ projectPath }) => {
             // Save - Ctrl+S
             if ((e.ctrlKey || e.metaKey) && e.key === 's' && !e.shiftKey) {
                 e.preventDefault();
-                saveFile();
+                saveFile().then(() => {
+                    // will add later
+                });
             }
 
             // Save As - Ctrl+Shift+S
             if ((e.ctrlKey || e.metaKey) && e.key === 's' && e.shiftKey) {
                 e.preventDefault();
-                saveFileAs();
+                saveFileAs().then(() => {
+                    //will add later
+                });
             }
         };
 
@@ -260,7 +274,9 @@ const App: React.FC<AppProps> = ({ projectPath }) => {
                                     className="close-tab"
                                     onClick={(e) => {
                                         e.stopPropagation();
-                                        closeFile(file);
+                                        closeFile(file).then(() => {
+                                            //will add later
+                                        });
                                     }}
                                 >
                                     ×

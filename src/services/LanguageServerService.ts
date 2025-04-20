@@ -22,7 +22,7 @@ interface ServerConfig {
 class LanguageServerService {
     private servers: Map<string, LanguageServer> = new Map();
     private serverConfigs: Map<string, ServerConfig> = new Map();
-    private serversPath: string;
+    private readonly serversPath: string;
     private nextPort = 8000;
 
     constructor() {
@@ -108,41 +108,60 @@ class LanguageServerService {
     }
 
     public async startServer(languageId: string): Promise<{ port: number, languageId: string } | null> {
-        // Check if server is already running
-        if (this.servers.has(languageId)) {
-            const server = this.servers.get(languageId);
-            return {
-                port: server.port,
-                languageId
-            };
-        }
-
-        // Check if server is installed
-        if (!this.isServerInstalled(languageId)) {
-            console.error(`Language server not installed for ${languageId}`);
-            return null;
-        }
-
-        const config = this.serverConfigs.get(languageId);
-        if (!config) {
-            console.error(`No configuration found for ${languageId}`);
-            return null;
-        }
-
         try {
+            // Check if server is already running
+            if (this.servers.has(languageId)) {
+                const server = this.servers.get(languageId);
+                return {
+                    port: server.port,
+                    languageId
+                };
+            }
+
+            // Check if server is installed
+            if (!this.isServerInstalled(languageId)) {
+                console.error(`Language server not installed for ${languageId}`);
+                return null;
+            }
+
+            const config = this.serverConfigs.get(languageId);
+            if (!config) {
+                console.error(`No configuration found for ${languageId}`);
+                return null;
+            }
+
+            // Log more information to diagnose issues
+            console.log(`Starting ${languageId} language server...`);
+            console.log(`Binary path: ${config.binary}`);
+            console.log(`Arguments: ${config.args.join(' ')}`);
+
+            // Verify binary exists before attempting to spawn
+            if (!fs.existsSync(config.binary)) {
+                console.error(`Binary not found at path: ${config.binary}`);
+                return null;
+            }
+
             // Allocate a port for web socket connection
             const port = this.nextPort++;
 
-            // Start server process
-            const serverProcess = spawn(config.binary, config.args);
+            // Start server process with better error handling
+            const serverProcess = spawn(config.binary, config.args, {
+                stdio: ['pipe', 'pipe', 'pipe'],
+                env: { ...process.env, NODE_ENV: process.env.NODE_ENV }
+            });
 
             // Handle server output
             serverProcess.stdout.on('data', (data) => {
-                console.log(`${languageId} server: ${data}`);
+                console.log(`${languageId} server output: ${data.toString().trim()}`);
             });
 
             serverProcess.stderr.on('data', (data) => {
-                console.error(`${languageId} server error: ${data}`);
+                console.error(`${languageId} server error: ${data.toString().trim()}`);
+            });
+
+            serverProcess.on('error', (error) => {
+                console.error(`Error starting ${languageId} server:`, error);
+                this.servers.delete(languageId);
             });
 
             serverProcess.on('close', (code) => {
@@ -158,6 +177,7 @@ class LanguageServerService {
             };
             this.servers.set(languageId, server);
 
+            console.log(`Successfully started ${languageId} language server on port ${port}`);
             return { port, languageId };
         } catch (error) {
             console.error(`Failed to start language server for ${languageId}:`, error);
@@ -176,18 +196,6 @@ class LanguageServerService {
         this.servers.delete(languageId);
         return true;
     }
-
-    public async stopAllServers(): Promise<void> {
-        for (const [languageId, server] of this.servers.entries()) {
-            server.process.kill();
-        }
-        this.servers.clear();
-    }
-
-    public isServerRunning(languageId: string): boolean {
-        return this.servers.has(languageId);
-    }
-
     public getServerInfo(languageId: string): { port: number, languageId: string } | null {
         const server = this.servers.get(languageId);
         if (!server) {

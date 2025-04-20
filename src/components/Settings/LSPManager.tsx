@@ -40,7 +40,9 @@ const LSPManager: React.FC<LSPManagerProps> = ({ onClose }) => {
             }
         };
 
-        fetchServers();
+        fetchServers().then(() => {
+            //will add later
+        });
     }, []);
 
     const installServer = async (serverId: string) => {

@@ -1,5 +1,4 @@
 // src/services/FileOperationsService.ts
-import path from 'path';
 
 /**
  * A service to handle file operations in the IDE
@@ -101,23 +100,6 @@ class FileOperationsService {
             this.openFiles.set(filePath, { content, isDirty: true });
         }
     }
-
-    /**
-     * Checks if the file has unsaved changes
-     */
-    isFileDirty(filePath: string): boolean {
-        return this.openFiles.get(filePath)?.isDirty || false;
-    }
-
-    /**
-     * Returns all files with unsaved changes
-     */
-    getDirtyFiles(): string[] {
-        return Array.from(this.openFiles.entries())
-            .filter(([_, { isDirty }]) => isDirty)
-            .map(([filePath]) => filePath);
-    }
-
     /**
      * Closes a file
      */
@@ -129,28 +111,6 @@ class FileOperationsService {
             this.activeFile = null;
         }
     }
-
-    /**
-     * Gets content of a file from memory
-     */
-    getFileContent(filePath: string): string | null {
-        return this.openFiles.get(filePath)?.content || null;
-    }
-
-    /**
-     * Sets the active file
-     */
-    setActiveFile(filePath: string): void {
-        this.activeFile = filePath;
-    }
-
-    /**
-     * Gets the active file
-     */
-    getActiveFile(): string | null {
-        return this.activeFile;
-    }
-
     /**
      * Adds a file to recent files list
      */

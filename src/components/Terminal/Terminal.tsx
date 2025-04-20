@@ -28,9 +28,13 @@ const Terminal: React.FC<TerminalProps> = ({ isExpanded, onToggle, projectPath }
     // Update terminal directory when projectPath changes
     useEffect(() => {
         if (projectPath) {
-            initializeWithProjectPath(projectPath);
+            initializeWithProjectPath(projectPath).then(() => {
+                //will add later
+            });
         } else {
-            updateDirectoryInfo();
+            updateDirectoryInfo().then(() => {
+                //will add later
+            });
         }
     }, [projectPath]);
 
@@ -123,7 +127,9 @@ const Terminal: React.FC<TerminalProps> = ({ isExpanded, onToggle, projectPath }
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === 'Enter') {
-            executeCommand(currentCommand);
+            executeCommand(currentCommand).then(() => {
+                // will add later
+            });
         } else if (e.key === 'ArrowUp') {
             if (historyIndex < commandHistory.length - 1) {
                 const newIndex = historyIndex + 1;
@@ -144,7 +150,9 @@ const Terminal: React.FC<TerminalProps> = ({ isExpanded, onToggle, projectPath }
 
     const clearTerminal = () => {
         setOutputs([]);
-        window.electronAPI.terminalClearHistory();
+        window.electronAPI.terminalClearHistory().then(() => {
+            //will add later
+        });
     };
 
     const getOutputClassName = (type: TerminalOutput['type']) => {

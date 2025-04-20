@@ -31,6 +31,12 @@ contextBridge.exposeInMainWorld('electronAPI', {
     addRecentFile: (filePath: string) => ipcRenderer.invoke('add-recent-file', filePath),
     clearRecentFiles: () => ipcRenderer.invoke('clear-recent-files'),
 
+    createDirectory: (dirPath: string) => ipcRenderer.invoke('create-directory', dirPath),
+    renameFile: (oldPath: string, newPath: string) => ipcRenderer.invoke('rename-file', oldPath, newPath),
+    deleteItem: (itemPath: string, isDirectory: boolean) => ipcRenderer.invoke('delete-item', itemPath, isDirectory),
+    copyOrMoveItem: (sourcePath: string, destPath: string, isDirectory: boolean, isCut: boolean) =>
+        ipcRenderer.invoke('copy-or-move-item', sourcePath, destPath, isDirectory, isCut),
+    openInExplorer: (itemPath: string) => ipcRenderer.invoke('open-in-explorer', itemPath),
 
     // Terminal operations
     terminalExecuteCommand: (command: string) => ipcRenderer.invoke('terminal-execute-command', command),

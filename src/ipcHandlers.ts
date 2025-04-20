@@ -1,5 +1,5 @@
 // src/ipcHandlers.ts
-import { ipcMain, dialog } from 'electron';
+import {dialog, ipcMain, shell} from 'electron';
 import FileSystemService from './services/FileSystemService';
 import TerminalService from './services/TerminalService';
 import LanguageServerService from './services/LanguageServerService';
@@ -155,6 +155,69 @@ export const setupIpcHandlers = () => {
         return { success: true };
     });
 
+    ipcMain.handle('create-directory', async (_, dirPath: string) => {
+        try {
+            fileSystemService.createDirectory(dirPath);
+            return { success: true };
+        } catch (error) {
+            return { success: false, error: error.message };
+        }
+    });
+
+    ipcMain.handle('rename-file', async (_, oldPath: string, newPath: string) => {
+        try {
+            fileSystemService.renameFile(oldPath, newPath);
+            return { success: true };
+        } catch (error) {
+            return { success: false, error: error.message };
+        }
+    });
+
+    ipcMain.handle('delete-item', async (_, itemPath: string, isDirectory: boolean) => {
+        try {
+            if (isDirectory) {
+                fileSystemService.removeDirectory(itemPath);
+            } else {
+                fileSystemService.removeFile(itemPath);
+            }
+            return { success: true };
+        } catch (error) {
+            return { success: false, error: error.message };
+        }
+    });
+
+    ipcMain.handle('copy-or-move-item', async (_, sourcePath: string, destPath: string, isDirectory: boolean, isCut: boolean) => {
+        try {
+            if (isDirectory) {
+                if (isCut) {
+                    fileSystemService.moveDirectory(sourcePath, destPath);
+                } else {
+                    fileSystemService.copyDirectory(sourcePath, destPath);
+                }
+            } else {
+                if (isCut) {
+                    fileSystemService.moveFile(sourcePath, destPath);
+                } else {
+                    fileSystemService.copyFile(sourcePath, destPath);
+                }
+            }
+            return { success: true };
+        } catch (error) {
+            return { success: false, error: error.message };
+        }
+    });
+
+    ipcMain.handle('open-in-explorer', async (_, itemPath: string) => {
+        try {
+            // Use shell to show the item in the file explorer
+            shell.showItemInFolder(itemPath);
+            return { success: true };
+        } catch (error) {
+            return { success: false, error: error.message };
+        }
+    });
+
+    // Terminal operations
     ipcMain.handle('terminal-execute-command', async (_, command: string) => {
         try {
             const output = await terminalService.executeCommand(command);
@@ -184,8 +247,7 @@ export const setupIpcHandlers = () => {
 
     ipcMain.handle('terminal-change-directory', async (_, newDir: string) => {
         try {
-            const result = await terminalService.changeDirectory(newDir);
-            return result;
+            return await terminalService.changeDirectory(newDir);
         } catch (error) {
             return { success: false, error: error.message };
         }

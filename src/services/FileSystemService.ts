@@ -143,6 +143,172 @@ class FileSystemService {
     }
 
     /**
+     * Creates a new directory at the specified path
+     * @param dirPath The path where the directory should be created
+     * @throws Error if directory creation fails
+     */
+    createDirectory(dirPath: string): void {
+        if (fs.existsSync(dirPath)) {
+            throw new Error(`Directory already exists: ${dirPath}`);
+        }
+
+        fs.mkdirSync(dirPath, { recursive: true });
+    }
+
+    /**
+     * Renames a file or directory
+     * @param oldPath The current path of the file or directory
+     * @param newPath The new path of the file or directory
+     * @throws Error if the file/directory doesn't exist or if renaming fails
+     */
+    renameFile(oldPath: string, newPath: string): void {
+        if (!fs.existsSync(oldPath)) {
+            throw new Error(`Path does not exist: ${oldPath}`);
+        }
+
+        if (fs.existsSync(newPath)) {
+            throw new Error(`Destination already exists: ${newPath}`);
+        }
+
+        fs.renameSync(oldPath, newPath);
+    }
+
+    /**
+     * Removes a file at the specified path
+     * @param filePath The path of the file to remove
+     * @throws Error if the file doesn't exist or if removal fails
+     */
+    removeFile(filePath: string): void {
+        if (!fs.existsSync(filePath)) {
+            throw new Error(`File does not exist: ${filePath}`);
+        }
+
+        if (fs.statSync(filePath).isDirectory()) {
+            throw new Error(`Cannot use removeFile on a directory: ${filePath}`);
+        }
+
+        fs.unlinkSync(filePath);
+    }
+
+    /**
+     * Removes a directory and all its contents recursively
+     * @param dirPath The path of the directory to remove
+     * @throws Error if the directory doesn't exist or if removal fails
+     */
+    removeDirectory(dirPath: string): void {
+        if (!fs.existsSync(dirPath)) {
+            throw new Error(`Directory does not exist: ${dirPath}`);
+        }
+
+        if (!fs.statSync(dirPath).isDirectory()) {
+            throw new Error(`Not a directory: ${dirPath}`);
+        }
+
+        fs.rmSync(dirPath, { recursive: true, force: true });
+    }
+
+    /**
+     * Copies a file from one location to another
+     * @param sourcePath The source file path
+     * @param destPath The destination file path
+     * @throws Error if the source doesn't exist or if copying fails
+     */
+    copyFile(sourcePath: string, destPath: string): void {
+        if (!fs.existsSync(sourcePath)) {
+            throw new Error(`Source file does not exist: ${sourcePath}`);
+        }
+
+        if (fs.statSync(sourcePath).isDirectory()) {
+            throw new Error(`Cannot use copyFile on a directory: ${sourcePath}`);
+        }
+
+        // Create destination directory if it doesn't exist
+        const destDir = path.dirname(destPath);
+        if (!fs.existsSync(destDir)) {
+            fs.mkdirSync(destDir, { recursive: true });
+        }
+
+        fs.copyFileSync(sourcePath, destPath);
+    }
+
+    /**
+     * Moves a file from one location to another
+     * @param sourcePath The source file path
+     * @param destPath The destination file path
+     * @throws Error if the source doesn't exist or if moving fails
+     */
+    moveFile(sourcePath: string, destPath: string): void {
+        // Copy the file first
+        this.copyFile(sourcePath, destPath);
+
+        // Then remove the original
+        this.removeFile(sourcePath);
+    }
+
+    /**
+     * Recursively copies a directory and all its contents
+     * @param sourcePath The source directory path
+     * @param destPath The destination directory path
+     * @throws Error if the source doesn't exist or if copying fails
+     */
+    copyDirectory(sourcePath: string, destPath: string): void {
+        if (!fs.existsSync(sourcePath)) {
+            throw new Error(`Source directory does not exist: ${sourcePath}`);
+        }
+
+        if (!fs.statSync(sourcePath).isDirectory()) {
+            throw new Error(`Source is not a directory: ${sourcePath}`);
+        }
+
+        // Create the destination directory if it doesn't exist
+        if (!fs.existsSync(destPath)) {
+            fs.mkdirSync(destPath, { recursive: true });
+        }
+
+        // Read all items in the source directory
+        const items = fs.readdirSync(sourcePath);
+
+        // Copy each item
+        for (const item of items) {
+            const srcItemPath = path.join(sourcePath, item);
+            const destItemPath = path.join(destPath, item);
+
+            if (fs.statSync(srcItemPath).isDirectory()) {
+                // Recursively copy subdirectories
+                this.copyDirectory(srcItemPath, destItemPath);
+            } else {
+                // Copy files
+                fs.copyFileSync(srcItemPath, destItemPath);
+            }
+        }
+    }
+
+    /**
+     * Moves a directory and all its contents
+     * @param sourcePath The source directory path
+     * @param destPath The destination directory path
+     * @throws Error if the source doesn't exist or if moving fails
+     */
+    moveDirectory(sourcePath: string, destPath: string): void {
+        if (!fs.existsSync(sourcePath)) {
+            throw new Error(`Source directory does not exist: ${sourcePath}`);
+        }
+
+        if (!fs.statSync(sourcePath).isDirectory()) {
+            throw new Error(`Source is not a directory: ${sourcePath}`);
+        }
+
+        // Try to use rename first, which is more efficient if on the same filesystem
+        try {
+            fs.renameSync(sourcePath, destPath);
+        } catch (error) {
+            // If rename fails (e.g., cross-device), fall back to copy and delete
+            this.copyDirectory(sourcePath, destPath);
+            this.removeDirectory(sourcePath);
+        }
+    }
+
+    /**
      * Checks if Git is installed
      * @returns Whether Git is available
      */
@@ -162,8 +328,8 @@ class FileSystemService {
      */
     extractRepoName(repoUrl: string): string {
         // Extract the repo name from the URL (handles both HTTPS and SSH formats)
-        const httpsMatch = repoUrl.match(/\/([^\/]+)\.git$/);
-        const sshMatch = repoUrl.match(/:([^\/]+)\.git$/);
+        const httpsMatch = repoUrl.match(/\/([^/]+)\.git$/);
+        const sshMatch = repoUrl.match(/:([^/]+)\.git$/);
         const nameMatch = httpsMatch || sshMatch;
 
         if (nameMatch && nameMatch[1]) {

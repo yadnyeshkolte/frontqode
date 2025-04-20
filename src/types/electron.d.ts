@@ -21,6 +21,7 @@ interface ElectronAPI {
     cloneRepository: (repoUrl: string, projectName?: string) =>
         Promise<{ success: boolean; projectPath?: string; error?: string }>;
 
+    // Terminal operations
     terminalExecuteCommand: (command: string) =>
         Promise<{ success: boolean; output?: TerminalOutput[]; error?: string }>;
     terminalGetCurrentDir: () =>
@@ -59,9 +60,33 @@ interface ElectronAPI {
     onMenuOpenSettings: (callback: () => void) => () => void;
     onMenuOpenExtensions: (callback: () => void) => () => void;
     onMenuOpenLSPManager: (callback: () => void) => () => void;
-    async
 
-    showSaveDialog(param: {defaultPath: string; filters: {name: string; extensions: string[]}[]}): any;
+    // File system operations
+    createDirectory: (dirPath: string) => Promise<{ success: boolean; error?: string }>;
+    renameFile: (oldPath: string, newPath: string) => Promise<{ success: boolean; error?: string }>;
+    deleteItem: (itemPath: string, isDirectory: boolean) => Promise<{ success: boolean; error?: string }>;
+    copyOrMoveItem: (
+        sourcePath: string,
+        destPath: string,
+        isDirectory: boolean,
+        isCut: boolean
+    ) => Promise<{ success: boolean; error?: string }>;
+    openInExplorer: (itemPath: string) => Promise<{ success: boolean; error?: string }>;
+
+    // Dialog operations
+    showSaveDialog: (options: {
+        defaultPath: string;
+        filters: { name: string; extensions: string[] }[];
+    }) => Promise<{ success: boolean; filePath?: string; error?: string }>;
+    showOpenDialog: (options: {
+        properties?: string[];
+        filters?: { name: string; extensions: string[] }[];
+    }) => Promise<{ success: boolean; filePaths?: string[]; error?: string }>;
+
+    // Recent files operations
+    getRecentFiles: () => Promise<string[]>;
+    addRecentFile: (filePath: string) => Promise<{ success: boolean }>;
+    clearRecentFiles: () => Promise<{ success: boolean }>;
 }
 
 interface Window {

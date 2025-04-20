@@ -8,10 +8,16 @@ import {
 } from '../../utils/FileExplorerUtils';
 import { getFileIconInfo, getDirectoryIcon } from '../../utils/IconUtils';
 import './FileExplorer.css';
+import { ContextMenu, ContextMenuItem } from '../../utils/ContextMenuUtils';
 
 interface FileExplorerProps {
     projectPath: string;
     onFileOpen: (filePath: string) => void;
+}
+
+interface ContextMenuPosition {
+    x: number;
+    y: number;
 }
 
 const FileExplorer: React.FC<FileExplorerProps> = ({ projectPath, onFileOpen }) => {
@@ -21,6 +27,201 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ projectPath, onFileOpen }) 
     const sidebarRef = useRef<HTMLDivElement>(null);
     const fileExplorerRef = useRef<HTMLDivElement>(null);
 
+    const [contextMenu, setContextMenu] = useState<{
+        visible: boolean;
+        position: ContextMenuPosition;
+        targetPath: string;
+        isDirectory: boolean;
+    }>({
+        visible: false,
+        position: { x: 0, y: 0 },
+        targetPath: '',
+        isDirectory: false,
+    });
+    const [clipboard, setClipboard] = useState<{
+        action: 'copy' | 'cut' | null;
+        path: string;
+        isDirectory: boolean;
+    }>({
+        action: null,
+        path: '',
+        isDirectory: false,
+    });
+    const [isRenaming, setIsRenaming] = useState<{
+        path: string;
+        newName: string;
+    }>({ path: '', newName: '' });
+    const [isCreatingNew, setIsCreatingNew] = useState<{
+        parentPath: string;
+        type: 'file' | 'folder';
+        name: string;
+    }>({ parentPath: '', type: 'file', name: '' });
+
+    const handleContextMenu = (e: React.MouseEvent, itemPath: string, isDir: boolean) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        setContextMenu({
+            visible: true,
+            position: { x: e.clientX, y: e.clientY },
+            targetPath: itemPath,
+            isDirectory: isDir,
+        });
+    };
+
+// Add this function to close context menu
+    const closeContextMenu = () => {
+        setContextMenu(prev => ({ ...prev, visible: false }));
+    };
+
+// Add these operation functions
+    const handleNewItem = (type: 'file' | 'folder') => {
+        const targetPath = contextMenu.targetPath;
+        const parentPath = contextMenu.isDirectory ? targetPath : path.dirname(targetPath);
+
+        setIsCreatingNew({
+            parentPath,
+            type,
+            name: type === 'file' ? 'new-file.txt' : 'new-folder',
+        });
+
+        closeContextMenu();
+    };
+
+    const handleCreateNewItem = async () => {
+        try {
+            const { parentPath, type, name } = isCreatingNew;
+            const newPath = path.join(parentPath, name);
+
+            let result;
+            if (type === 'file') {
+                result = await window.electronAPI.writeFile(newPath, '');
+            } else {
+                result = await window.electronAPI.createDirectory(newPath);
+            }
+
+            if (result.success) {
+                loadFileTree();
+                setIsCreatingNew({ parentPath: '', type: 'file', name: '' });
+            } else {
+                console.error(`Failed to create ${type}:`, result.error);
+            }
+        } catch (error) {
+            console.error(`Error creating new ${isCreatingNew.type}:`, error);
+        }
+    };
+
+    const handleRename = () => {
+        const name = path.basename(contextMenu.targetPath);
+        setIsRenaming({
+            path: contextMenu.targetPath,
+            newName: name,
+        });
+        closeContextMenu();
+    };
+
+    const handleRenameConfirm = async () => {
+        try {
+            const oldPath = isRenaming.path;
+            const dirPath = path.dirname(oldPath);
+            const newPath = path.join(dirPath, isRenaming.newName);
+
+            const result = await window.electronAPI.renameFile(oldPath, newPath);
+
+            if (result.success) {
+                loadFileTree();
+                setIsRenaming({ path: '', newName: '' });
+            } else {
+                console.error('Failed to rename:', result.error);
+            }
+        } catch (error) {
+            console.error('Error renaming:', error);
+        }
+    };
+
+    const handleDelete = async () => {
+        try {
+            const confirmDelete = window.confirm(
+                `Are you sure you want to delete ${path.basename(contextMenu.targetPath)}?`
+            );
+
+            if (confirmDelete) {
+                const result = await window.electronAPI.deleteItem(
+                    contextMenu.targetPath,
+                    contextMenu.isDirectory
+                );
+
+                if (result.success) {
+                    loadFileTree();
+                } else {
+                    console.error('Failed to delete:', result.error);
+                }
+            }
+
+            closeContextMenu();
+        } catch (error) {
+            console.error('Error deleting:', error);
+        }
+    };
+
+    const handleCopyOrCut = (action: 'copy' | 'cut') => {
+        setClipboard({
+            action,
+            path: contextMenu.targetPath,
+            isDirectory: contextMenu.isDirectory,
+        });
+        closeContextMenu();
+    };
+
+    const handlePaste = async () => {
+        try {
+            if (!clipboard.action || !clipboard.path) return;
+
+            const targetDir = contextMenu.isDirectory
+                ? contextMenu.targetPath
+                : path.dirname(contextMenu.targetPath);
+
+            const sourcePath = clipboard.path;
+            const fileName = path.basename(sourcePath);
+            const destPath = path.join(targetDir, fileName);
+
+            // Don't paste into itself
+            if (sourcePath === destPath) {
+                closeContextMenu();
+                return;
+            }
+
+            const result = await window.electronAPI.copyOrMoveItem(
+                sourcePath,
+                destPath,
+                clipboard.isDirectory,
+                clipboard.action === 'cut'
+            );
+
+            if (result.success) {
+                loadFileTree();
+                if (clipboard.action === 'cut') {
+                    // Reset clipboard after cut & paste
+                    setClipboard({ action: null, path: '', isDirectory: false });
+                }
+            } else {
+                console.error('Failed to paste:', result.error);
+            }
+
+            closeContextMenu();
+        } catch (error) {
+            console.error('Error pasting:', error);
+        }
+    };
+
+    const handleOpenInExplorer = async () => {
+        try {
+            await window.electronAPI.openInExplorer(contextMenu.targetPath);
+            closeContextMenu();
+        } catch (error) {
+            console.error('Error opening in file explorer:', error);
+        }
+    };
     // Load file tree on component mount or when project path changes
     useEffect(() => {
         if (projectPath) {
@@ -143,6 +344,18 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ projectPath, onFileOpen }) 
         );
     };
 
+    useEffect(() => {
+        const handleClickOutside = () => {
+            closeContextMenu();
+        };
+
+        document.addEventListener('click', handleClickOutside);
+
+        return () => {
+            document.removeEventListener('click', handleClickOutside);
+        };
+    }, []);
+
     // Render file tree recursively
     const renderFileTree = (items: FileTreeItem[], indent = 0) => {
         const filteredItems = searchTerm ? filterTree(items, searchTerm) : items;
@@ -161,6 +374,7 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ projectPath, onFileOpen }) 
                             <div
                                 className="directory-content"
                                 onClick={() => toggleDirectory(item.path)}
+                                onContextMenu={(e) => handleContextMenu(e, item.path, true)}
                             >
                                 <span className={`expand-icon ${item.expanded ? 'expanded' : 'collapsed'}`}>
                                     {item.expanded ? '▼' : '►'}
@@ -176,6 +390,7 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ projectPath, onFileOpen }) 
                             <div
                                 className="file-content"
                                 onClick={() => onFileOpen(item.path)}
+                                onContextMenu={(e) => handleContextMenu(e, item.path, false)}
                             >
                                 <span className={`material-icons file-icon ${iconInfo?.cssClass || ''}`}>
                                     {iconInfo?.icon || 'description'}
@@ -221,6 +436,85 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ projectPath, onFileOpen }) 
                 </ul>
             </div>
             <div className="resize-handle" ref={resizeHandleRef}></div>
+            {contextMenu.visible && (
+                <ContextMenu
+                    position={contextMenu.position}
+                    onClose={closeContextMenu}
+                >
+                    {contextMenu.isDirectory && (
+                        <>
+                            <ContextMenuItem onClick={() => handleNewItem('file')}>
+                                <span className="material-icons">insert_drive_file</span>New File
+                            </ContextMenuItem>
+                            <ContextMenuItem onClick={() => handleNewItem('folder')}>
+                                <span className="material-icons">create_new_folder</span>New Folder
+                            </ContextMenuItem>
+                            <ContextMenuItem divider />
+                        </>
+                    )}
+                    <ContextMenuItem onClick={handleRename}>
+                        <span className="material-icons">drive_file_rename_outline</span>Rename
+                    </ContextMenuItem>
+                    <ContextMenuItem onClick={handleDelete}>
+                        <span className="material-icons">delete</span>Delete
+                    </ContextMenuItem>
+                    <ContextMenuItem divider />
+                    <ContextMenuItem onClick={() => handleCopyOrCut('copy')}>
+                        <span className="material-icons">content_copy</span>Copy
+                    </ContextMenuItem>
+                    <ContextMenuItem onClick={() => handleCopyOrCut('cut')}>
+                        <span className="material-icons">content_cut</span>Cut
+                    </ContextMenuItem>
+                    {clipboard.action && (
+                        <ContextMenuItem onClick={handlePaste}>
+                            <span className="material-icons">content_paste</span>Paste
+                        </ContextMenuItem>
+                    )}
+                    <ContextMenuItem divider />
+                    <ContextMenuItem onClick={loadFileTree}>
+                        <span className="material-icons">refresh</span>Refresh
+                    </ContextMenuItem>
+                    <ContextMenuItem onClick={handleOpenInExplorer}>
+                        <span className="material-icons">folder_open</span>Open in File Explorer
+                    </ContextMenuItem>
+                </ContextMenu>
+            )}
+
+            {isRenaming.path && (
+                <div className="modal-overlay">
+                    <div className="modal">
+                        <h3>Rename</h3>
+                        <input
+                            type="text"
+                            value={isRenaming.newName}
+                            onChange={(e) => setIsRenaming(prev => ({ ...prev, newName: e.target.value }))}
+                            autoFocus
+                        />
+                        <div className="modal-actions">
+                            <button onClick={() => setIsRenaming({ path: '', newName: '' })}>Cancel</button>
+                            <button onClick={handleRenameConfirm}>Rename</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {isCreatingNew.parentPath && (
+                <div className="modal-overlay">
+                    <div className="modal">
+                        <h3>Create New {isCreatingNew.type === 'file' ? 'File' : 'Folder'}</h3>
+                        <input
+                            type="text"
+                            value={isCreatingNew.name}
+                            onChange={(e) => setIsCreatingNew(prev => ({ ...prev, name: e.target.value }))}
+                            autoFocus
+                        />
+                        <div className="modal-actions">
+                            <button onClick={() => setIsCreatingNew({ parentPath: '', type: 'file', name: '' })}>Cancel</button>
+                            <button onClick={handleCreateNewItem}>Create</button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

@@ -1,6 +1,6 @@
 // src/components/Settings/LSPManager.tsx
 import React, { useState, useEffect } from 'react';
-import '../../styles/LSPManager.css';
+import '../styles/LSPManager.css';
 
 interface LSPManagerProps {
     onClose: () => void;

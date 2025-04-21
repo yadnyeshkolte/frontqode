@@ -5,7 +5,7 @@ import * as path from 'path';
 import Terminal from '../Terminal/Terminal';
 import FileExplorer from '../FileExplorer/FileExplorer';
 import MonacoEditor from '../Editor/MonacoEditor';
-import LSPManager from '../Settings/LSPManager';
+import LSPManager from '../../managers/LSPManager';
 import FileOperationsService from '../../services/FileOperationsService';
 
 interface AppProps {

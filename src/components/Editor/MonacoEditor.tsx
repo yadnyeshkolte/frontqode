@@ -192,18 +192,33 @@ const MonacoEditor: React.FC<MonacoEditorProps> = ({
                 return;
             }
 
-            // Create WebSocket connection to language server
+            // Create WebSocket connection to language server via proxy
             const webSocketUrl = `ws://localhost:${serverInfo.port}/${language}`;
             console.log(`Connecting to WebSocket at ${webSocketUrl}`);
+
             const webSocket = new WebSocket(webSocketUrl);
+
+            let isConnected = false;
+
+            // Add timeout for connection
+            const connectionTimeout = setTimeout(() => {
+                if (!isConnected) {
+                    console.error(`Connection timeout for ${language} language server`);
+                    setLSPStatus(`Connection timeout for ${language} language server`);
+                    webSocket.close();
+                }
+            }, 10000); // 10 seconds timeout
 
             // Handle WebSocket errors
             webSocket.onerror = (error) => {
                 console.error(`WebSocket error for ${language}:`, error);
                 setLSPStatus(`WebSocket connection error for ${language} language server`);
+                clearTimeout(connectionTimeout);
             };
 
             webSocket.onopen = () => {
+                isConnected = true;
+                clearTimeout(connectionTimeout);
                 console.log(`WebSocket connection established for ${language}`);
                 setLSPStatus(`Connected to ${language} language server`);
             };
@@ -213,9 +228,10 @@ const MonacoEditor: React.FC<MonacoEditorProps> = ({
             const reader = new WebSocketMessageReader(socket);
             const writer = new WebSocketMessageWriter(socket);
 
-            // Create a more robust language client with better error handling
+            // Create language client
             try {
-
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                // @ts-ignore
                 const languageClient = new MonacoLanguageClient({
                     name: `${language} Language Client`,
                     clientOptions: {

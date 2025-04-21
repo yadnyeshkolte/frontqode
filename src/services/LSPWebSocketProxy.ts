@@ -1,8 +1,7 @@
-// src/services/LSPWebSocketProxy.ts
+// Updated LSPWebSocketProxy.ts
 import * as WebSocket from 'ws';
 import { ChildProcess } from 'child_process';
 import * as http from 'http';
-
 
 class LSPWebSocketProxy {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -21,8 +20,10 @@ class LSPWebSocketProxy {
 
         // Handle WebSocket connections
         this.wss.on('connection', (ws: WebSocket, req: http.IncomingMessage) => {
-            const url = new URL(req.url || '', 'http://localhost');
+            const url = new URL(req.url || '', `http://localhost`);
             const languageId = url.pathname.substring(1); // Remove leading slash
+
+            console.log(`New WebSocket connection for ${languageId}`);
 
             // Add connection to set of connections for this language
             if (!this.connections.has(languageId)) {
@@ -30,25 +31,54 @@ class LSPWebSocketProxy {
             }
             this.connections.get(languageId)?.add(ws);
 
+            // Get server process
+            const serverProcess = this.serverProcesses.get(languageId);
+            if (!serverProcess) {
+                console.error(`No language server process found for ${languageId}`);
+                ws.close(1011, `No language server process found for ${languageId}`);
+                return;
+            }
+
+            // Set up server process output handling if not already set up
+            if (serverProcess.stdout && !serverProcess.stdout.listenerCount('data')) {
+                serverProcess.stdout.on('data', (data) => {
+                    const connections = this.connections.get(languageId);
+                    if (connections) {
+                        const message = data.toString();
+                        console.log(`${languageId} server output: ${message.substring(0, 100)}${message.length > 100 ? '...' : ''}`);
+
+                        // Send message to all connected clients for this language
+                        for (const client of connections) {
+                            if (client.readyState === WebSocket.OPEN) {
+                                client.send(message);
+                            }
+                        }
+                    }
+                });
+            }
+
+            if (serverProcess.stderr && !serverProcess.stderr.listenerCount('data')) {
+                serverProcess.stderr.on('data', (data) => {
+                    console.error(`${languageId} server error:`, data.toString());
+                });
+            }
+
             // Handle messages from client
             ws.on('message', (message: Buffer) => {
-                const serverProcess = this.serverProcesses.get(languageId);
                 if (serverProcess && serverProcess.stdin) {
                     // Forward message to language server
-                    serverProcess.stdin.write(`${message}\n`);
+                    const messageStr = message.toString();
+                    console.log(`Sending message to ${languageId} server: ${messageStr.substring(0, 100)}${messageStr.length > 100 ? '...' : ''}`);
+                    serverProcess.stdin.write(messageStr + '\n');
                 }
             });
 
             // Handle client disconnection
             ws.on('close', () => {
+                console.log(`WebSocket connection closed for ${languageId}`);
                 const connections = this.connections.get(languageId);
                 if (connections) {
                     connections.delete(ws);
-
-                    // If no more connections for this language, stop the server
-                    if (connections.size === 0) {
-                        this.stopServerProcess(languageId);
-                    }
                 }
             });
         });
@@ -67,14 +97,30 @@ class LSPWebSocketProxy {
         });
     }
 
+    // Register a server process with the proxy
+    public registerServer(languageId: string, process: ChildProcess): void {
+        console.log(`Registering ${languageId} server process with WebSocket proxy`);
+        this.serverProcesses.set(languageId, process);
+
+        // Clean up when process exits
+        process.on('exit', () => {
+            console.log(`${languageId} server process exited, removing from proxy`);
+            this.serverProcesses.delete(languageId);
+
+            // Close all connections for this language
+            const connections = this.connections.get(languageId);
+            if (connections) {
+                for (const client of connections) {
+                    client.close(1000, `${languageId} server process exited`);
+                }
+                this.connections.delete(languageId);
+            }
+        });
+    }
+
     // Stop the WebSocket proxy server
     public stop(): Promise<void> {
         return new Promise((resolve) => {
-            // Stop all server processes
-            for (const languageId of this.serverProcesses.keys()) {
-                this.stopServerProcess(languageId);
-            }
-
             // Close all WebSocket connections
             for (const clients of this.connections.values()) {
                 for (const client of clients) {
@@ -88,15 +134,6 @@ class LSPWebSocketProxy {
                 resolve();
             });
         });
-    }
-    // Stop a language server process
-    private stopServerProcess(languageId: string): void {
-        const process = this.serverProcesses.get(languageId);
-        if (process) {
-            process.kill();
-            this.serverProcesses.delete(languageId);
-            console.log(`Stopped language server process for ${languageId}`);
-        }
     }
 }
 

@@ -3,6 +3,7 @@ import { spawn, ChildProcess, exec } from 'child_process';
 import * as path from 'path';
 import * as fs from 'fs';
 import { getAppDataPath } from '../utils/appPaths';
+import LSPWebSocketProxy from './LSPWebSocketProxy';
 
 interface LanguageServer {
     process: ChildProcess;
@@ -24,14 +25,20 @@ class LanguageServerService {
     private serverConfigs: Map<string, ServerConfig> = new Map();
     private readonly serversPath: string;
     private nextPort = 8000;
+    private lspProxy: LSPWebSocketProxy;
+    private proxyPort = 8080; // Default WebSocket proxy port
 
     constructor() {
         this.serversPath = path.join(getAppDataPath(), 'language-servers');
+        this.lspProxy = new LSPWebSocketProxy();
         // Ensure the directory exists
         if (!fs.existsSync(this.serversPath)) {
             fs.mkdirSync(this.serversPath, { recursive: true });
         }
         this.initializeServerConfigs();
+        this.lspProxy.start(this.proxyPort).catch(err => {
+            console.error('Failed to start LSP WebSocket proxy:', err);
+        });
     }
 
     private initializeServerConfigs() {
@@ -113,7 +120,7 @@ class LanguageServerService {
             if (this.servers.has(languageId)) {
                 const server = this.servers.get(languageId);
                 return {
-                    port: server.port,
+                    port: this.proxyPort, // Return proxy port instead of server-specific port
                     languageId
                 };
             }
@@ -169,16 +176,18 @@ class LanguageServerService {
                 this.servers.delete(languageId);
             });
 
-            // Store server info
+            // Register server with the WebSocket proxy
+            this.lspProxy.registerServer(languageId, serverProcess);
+
             const server = {
                 process: serverProcess,
-                port,
+                port: this.proxyPort, // Use the proxy port
                 languageId
             };
             this.servers.set(languageId, server);
 
-            console.log(`Successfully started ${languageId} language server on port ${port}`);
-            return { port, languageId };
+            console.log(`Successfully started ${languageId} language server, available via proxy on port ${this.proxyPort}`);
+            return { port: this.proxyPort, languageId };
         } catch (error) {
             console.error(`Failed to start language server for ${languageId}:`, error);
             return null;

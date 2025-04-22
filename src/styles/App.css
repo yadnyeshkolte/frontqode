@@ -116,6 +116,8 @@
     overflow: scroll !important;  /* Force scrollbars to appear */
     tab-size: 4;       /* Set tab size to 4 spaces */
     -moz-tab-size: 4;  /* Firefox support */
+    scrollbar-width: thin;
+    scrollbar-color: #555555 #252526;
 }
 
 /* Force scrollbars to be always visible for testing */

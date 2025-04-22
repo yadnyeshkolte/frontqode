@@ -126,7 +126,7 @@ const MonacoEditor: React.FC<MonacoEditorProps> = ({
                 theme: 'vs-dark',
                 automaticLayout: true,
                 minimap: { enabled: true },
-                scrollBeyondLastLine: false,
+                scrollBeyondLastLine: true,
                 fontSize: 14,
                 lineNumbers: 'on',
                 renderLineHighlight: 'all',

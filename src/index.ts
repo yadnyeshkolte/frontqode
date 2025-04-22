@@ -1,5 +1,11 @@
 import { app, BrowserWindow } from 'electron';
-import { setupIpcHandlers } from './ipcHandlers';
+import { setupProjectHandlers } from './ipcHandlers/projectHandlers';
+import { setupGitHandlers } from './ipcHandlers/gitHandlers';
+import { setupFileHandlers } from './ipcHandlers/fileHandlers';
+import { setupRecentFilesHandlers } from './ipcHandlers/recentFilesHandlers';
+import { setupTerminalHandlers } from './ipcHandlers/terminalHandlers';
+import { setupLanguageServerHandlers } from './ipcHandlers/languageServerHandlers';
+import { setupGroqHandlers } from './ipcHandlers/groqHandlers';
 import { setupApplicationMenu } from './menu';
 
 
@@ -62,8 +68,15 @@ const createWindow = (): void => {
   }
 };
 
-// Set up IPC handlers
-setupIpcHandlers();
+  // Set up all handlers
+  setupProjectHandlers();
+  setupGitHandlers();
+  setupFileHandlers();
+  setupRecentFilesHandlers();
+  setupTerminalHandlers();
+  setupLanguageServerHandlers();
+  setupGroqHandlers();
+
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.

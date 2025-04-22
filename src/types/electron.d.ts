@@ -67,6 +67,7 @@ interface ElectronAPI {
     onMenuOpenSettings: (callback: () => void) => () => void;
     onMenuOpenExtensions: (callback: () => void) => () => void;
     onMenuOpenLSPManager: (callback: () => void) => () => void;
+    onMenuClearRecentFiles: (callback: () => void) => () => void;
 
     // File system operations
     createDirectory: (dirPath: string) => Promise<{ success: boolean; error?: string }>;
@@ -94,7 +95,6 @@ interface ElectronAPI {
     getRecentFiles: () => Promise<string[]>;
     addRecentFile: (filePath: string) => Promise<{ success: boolean }>;
     clearRecentFiles: () => Promise<{ success: boolean }>;
-    async
 
     getAvailableLanguageServers: () => Promise<{
         success: boolean;

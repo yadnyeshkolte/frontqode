@@ -53,6 +53,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
     stopLSPServer: (languageId: string) => ipcRenderer.invoke('stop-lsp-server', languageId),
     installLSPServer: (languageId: string) => ipcRenderer.invoke('install-lsp-server', languageId),
 
+    groqGetCompletion: (prompt: string, maxTokens?: number) =>
+        ipcRenderer.invoke('groq-get-completion', prompt, maxTokens),
+    groqSetApiKey: (apiKey: string) => ipcRenderer.invoke('groq-set-api-key', apiKey),
+    groqGetApiKey: () => ipcRenderer.invoke('groq-get-api-key'),
+
     // Menu event listeners
     onMenuNewProject: (callback: () => void) => {
         ipcRenderer.on('menu-new-project', () => callback());

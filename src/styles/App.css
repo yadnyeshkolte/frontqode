@@ -177,3 +177,36 @@
     cursor: col-resize;
     background-color: #393939;
 }
+
+
+app-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.app-header-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.ai-assistant-button {
+    background: none;
+    border: none;
+    color: #fff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+}
+
+.ai-assistant-button:hover {
+    background-color: #383838;
+}
+
+.ai-assistant-button .material-icons {
+    font-size: 24px;
+}

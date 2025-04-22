@@ -45,6 +45,11 @@ interface ElectronAPI {
     installLSPServer: (languageId: string) =>
         Promise<{ success: boolean; error?: string }>;
 
+    groqGetCompletion: (prompt: string, maxTokens?: number) =>
+        Promise<{ success: boolean; completion?: string; error?: string }>;
+    groqSetApiKey: (apiKey: string) => Promise<{ success: boolean; error?: string }>;
+    groqGetApiKey: () => Promise<{ success: boolean; apiKey?: string; error?: string }>;
+
     // Menu event listeners
     onMenuNewProject: (callback: () => void) => () => void;
     onMenuOpenProject: (callback: (projectPath: string) => void) => () => void;

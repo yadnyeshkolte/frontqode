@@ -1,0 +1,179 @@
+/* src/components/AIAssistant/AIAssistant.css */
+.ai-assistant-overlay {
+    position: fixed;
+    top: 0;
+    right: 0;
+    height: 100vh;
+    width: 30%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    animation: slideIn 0.3s forwards;
+}
+
+@keyframes slideIn {
+    from { transform: translateX(100%); }
+    to { transform: translateX(0); }
+}
+
+.ai-assistant-panel {
+    width: 100%;
+    height: 100%;
+    background-color: #1e1e1e;
+    display: flex;
+    flex-direction: column;
+    border-left: 1px solid #444;
+}
+
+.ai-assistant-header {
+    padding: 12px;
+    background-color: #252526;
+    border-bottom: 1px solid #444;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.ai-assistant-header h3 {
+    margin: 0;
+    color: #fff;
+}
+
+.ai-assistant-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.ai-assistant-actions button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #ccc;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+    border-radius: 4px;
+}
+
+.ai-assistant-actions button:hover {
+    background-color: #383838;
+    color: #fff;
+}
+
+.ai-assistant-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.message {
+    padding: 10px;
+    border-radius: 8px;
+    max-width: 90%;
+}
+
+.message.user {
+    align-self: flex-end;
+    background-color: #2b5278;
+    color: #fff;
+}
+
+.message.assistant {
+    align-self: flex-start;
+    background-color: #3b3b3b;
+    color: #fff;
+}
+
+.ai-assistant-input {
+    display: flex;
+    padding: 12px;
+    border-top: 1px solid #444;
+}
+
+.ai-assistant-input textarea {
+    flex: 1;
+    min-height: 60px;
+    padding: 8px;
+    resize: none;
+    background-color: #2d2d2d;
+    border: 1px solid #444;
+    border-radius: 4px;
+    color: #fff;
+}
+
+.ai-assistant-input button {
+    background-color: #0e639c;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 0 12px;
+    margin-left: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.ai-assistant-input button:disabled {
+    background-color: #555;
+    cursor: not-allowed;
+}
+
+.api-key-form {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.api-key-form h4 {
+    margin: 0;
+    color: #fff;
+}
+
+.api-key-form input {
+    padding: 8px;
+    background-color: #2d2d2d;
+    border: 1px solid #444;
+    border-radius: 4px;
+    color: #fff;
+}
+
+.api-key-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+    margin-top: 12px;
+}
+
+.api-key-actions button {
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.api-key-actions button:first-child {
+    background-color: #3b3b3b;
+    color: #fff;
+    border: 1px solid #555;
+}
+
+.api-key-actions button:last-child {
+    background-color: #0e639c;
+    color: #fff;
+    border: none;
+}
+
+.rotating {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}

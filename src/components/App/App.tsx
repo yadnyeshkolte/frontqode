@@ -7,6 +7,9 @@ import FileExplorer from '../FileExplorer/FileExplorer';
 import MonacoEditor from '../Editor/MonacoEditor';
 import LSPManager from '../../managers/LSPManager';
 import FileOperationsService from '../../services/FileOperationsService';
+import AIAssistant from '../AIAssistant/AIAssistant';
+
+
 
 interface AppProps {
     projectPath: string;
@@ -23,6 +26,7 @@ const App: React.FC<AppProps> = ({ projectPath }) => {
     const [isLSPManagerOpen, setIsLSPManagerOpen] = useState<boolean>(false);
     const [editorKey] = useState<number>(0); // Add a key to force re-render of editor
     const fileOpsService = useRef(new FileOperationsService()).current;
+    const [isAIAssistantOpen, setIsAIAssistantOpen] = useState<boolean>(false);
 
     // Load project data when the project path changes
     useEffect(() => {
@@ -251,6 +255,15 @@ const App: React.FC<AppProps> = ({ projectPath }) => {
         <div className="app-container">
             <div className="app-header">
                 <h1>Front Qode IDE - {projectName}</h1>
+                <div className="app-header-actions">
+                    <button
+                        className="ai-assistant-button"
+                        onClick={() => setIsAIAssistantOpen(!isAIAssistantOpen)}
+                        title="AI Assistant"
+                    >
+                        <span className="material-icons">smart_toy</span>
+                    </button>
+                </div>
             </div>
             <div className={`app-content ${isTerminalExpanded ? 'with-terminal' : ''}`}>
                 <div className="sidebar" ref={sidebarRef}>
@@ -321,6 +334,13 @@ const App: React.FC<AppProps> = ({ projectPath }) => {
             />
             {isLSPManagerOpen && (
                 <LSPManager onClose={() => setIsLSPManagerOpen(false)} />
+            )}
+            {isAIAssistantOpen && (
+                <AIAssistant
+                    isOpen={isAIAssistantOpen}
+                    onClose={() => setIsAIAssistantOpen(false)}
+                    projectPath={projectPath}
+                />
             )}
         </div>
     );

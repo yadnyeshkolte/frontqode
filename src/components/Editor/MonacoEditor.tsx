@@ -4,6 +4,7 @@ import * as monaco from 'monaco-editor';
 import { editor } from 'monaco-editor';
 import * as path from 'path';
 import 'vscode/localExtensionHost';
+import debounce from 'lodash/debounce';
 
 // Initialize Monaco environment
 self.MonacoEnvironment = {
@@ -43,6 +44,25 @@ const MonacoEditor: React.FC<MonacoEditorProps> = ({
     const [lspStatus, setLSPStatus] = useState<string>('');
     const socketRef = useRef<WebSocket | null>(null);
     const connectionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const [codeSuggestions, setCodeSuggestions] = useState<string>('');
+    const [showSuggestions, setShowSuggestions] = useState<boolean>(false);
+
+    const debouncedGetSuggestions = useRef(
+        debounce(async (code: string, lang: string) => {
+            try {
+                const result = await window.electronAPI.groqGetCompletion(
+                    `Suggest code improvements or completions for the following ${lang} code:\n\n${code}`,
+                    150 // Smaller token limit for suggestions
+                );
+                if (result.success && result.completion) {
+                    setCodeSuggestions(result.completion);
+                    setShowSuggestions(true);
+                }
+            } catch (error) {
+                console.error('Error getting code suggestions:', error);
+            }
+        }, 800)
+    ).current;
 
     // Clean up function for LSP connections
     const cleanupLSP = () => {
@@ -176,6 +196,16 @@ const MonacoEditor: React.FC<MonacoEditorProps> = ({
         }
     };
 
+    useEffect(() => {
+        if (monacoEditorRef.current && content) {
+            const model = monacoEditorRef.current.getModel();
+            if (model) {
+                const language = model.getLanguageId();
+                debouncedGetSuggestions(content, language);
+            }
+        }
+    }, [content]);
+
     return (
         <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
             {lspStatus && (
@@ -187,6 +217,19 @@ const MonacoEditor: React.FC<MonacoEditorProps> = ({
                 ref={editorRef}
                 style={{ width: '100%', height: '100%', flexGrow: 1 }}
             />
+            {showSuggestions && codeSuggestions && (
+                <div className="code-suggestions">
+                    <div className="suggestions-header">
+                        <h4>AI Suggestions</h4>
+                        <button onClick={() => setShowSuggestions(false)}>
+                            <span className="material-icons">close</span>
+                        </button>
+                    </div>
+                    <div className="suggestions-content">
+                        {codeSuggestions}
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

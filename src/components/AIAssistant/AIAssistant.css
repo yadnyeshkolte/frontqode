@@ -277,7 +277,6 @@
     background-color: #4a7eb7;
 }
 
-
 @keyframes spin {
     from { transform: rotate(0deg); }
     to { transform: rotate(360deg); }

@@ -18,6 +18,7 @@ let persistentMessages: Message[] = [
     { role: 'assistant', content: 'Hello! I\'m your coding assistant. How can I help you today?' }
 ];
 
+
 // Helper function to format code blocks in a message
 const formatMessageContent = (content: string): React.ReactNode => {
     if (!content) return '';
@@ -183,16 +184,20 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ isOpen, onClose}) => {
                 // Refresh API key info
                 const keyResult = await window.electronAPI.groqGetApiKey();
                 if (keyResult.success) {
+                    // Force a re-render by setting apiKey first
                     setApiKey(keyResult.apiKey);
                     setUserStoredKey(null);
                     setIsUsingDefaultKey(keyResult.isDefault || false);
+
+                    // Force input state to update as well
+                    setInput('');
 
                     // If no default key is available and user key was removed, show the API key form
                     if (!keyResult.apiKey) {
                         setShowApiKeyForm(true);
                     }
 
-                    alert('Your API key has been removed successfully.');
+                    alert('It has been removed successfully. Plz restart the IDE');
                 }
             } else {
                 alert(`Failed to remove API key: ${result.error}`);

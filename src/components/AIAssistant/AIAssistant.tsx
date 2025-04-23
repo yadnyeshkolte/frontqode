@@ -13,10 +13,69 @@ interface Message {
     content: string;
 }
 
-const AIAssistant: React.FC<AIAssistantProps> = ({ isOpen, onClose, projectPath }) => {
-    const [messages, setMessages] = useState<Message[]>([
-        { role: 'assistant', content: 'Hello! I\'m your coding assistant. How can I help you today?' }
-    ]);
+// Store messages outside component to persist between renders
+let persistentMessages: Message[] = [
+    { role: 'assistant', content: 'Hello! I\'m your coding assistant. How can I help you today?' }
+];
+
+// Helper function to format code blocks in a message
+const formatMessageContent = (content: string): React.ReactNode => {
+    if (!content) return '';
+
+    // Split the content by code block markers
+    const parts = content.split(/```([a-zA-Z]*)\n([\s\S]*?)```/g);
+
+    if (parts.length === 1) {
+        // No code blocks found, return plain text with line breaks preserved
+        return content.split('\n').map((line, i) => (
+            <React.Fragment key={i}>
+                {line}
+                {i < content.split('\n').length - 1 && <br />}
+            </React.Fragment>
+        ));
+    }
+
+    const result: React.ReactNode[] = [];
+
+    for (let i = 0; i < parts.length; i++) {
+        if (i % 3 === 0) {
+            // Regular text
+            if (parts[i].trim()) {
+                result.push(
+                    <span key={`text-${i}`}>
+                        {parts[i].split('\n').map((line, j) => (
+                            <React.Fragment key={j}>
+                                {line}
+                                {j < parts[i].split('\n').length - 1 && <br />}
+                            </React.Fragment>
+                        ))}
+                    </span>
+                );
+            }
+        } else if (i % 3 === 1) {
+            // This is the language identifier - we don't need to render it
+
+        } else if (i % 3 === 2) {
+            // This is the code block content
+            const language = parts[i-1] || 'plaintext';
+            result.push(
+                <div key={`code-${i}`} className="code-block">
+                    <div className="code-header">
+                        <span className="code-language">{language}</span>
+                    </div>
+                    <pre>
+                        <code>{parts[i]}</code>
+                    </pre>
+                </div>
+            );
+        }
+    }
+
+    return result;
+};
+
+const AIAssistant: React.FC<AIAssistantProps> = ({ isOpen, onClose}) => {
+    const [messages, setMessages] = useState<Message[]>(persistentMessages);
     const [input, setInput] = useState('');
     const [isProcessing, setIsProcessing] = useState(false);
     const [apiKey, setApiKey] = useState<string | null>(null);
@@ -38,6 +97,11 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ isOpen, onClose, projectPath 
     useEffect(() => {
         // Scroll to bottom when messages change
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, [messages]);
+
+    // Update persistent messages when the state changes
+    useEffect(() => {
+        persistentMessages = messages;
     }, [messages]);
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -77,6 +141,17 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ isOpen, onClose, projectPath 
         }
     };
 
+    const handleDeleteChat = () => {
+        // Reset chat to initial message
+        const initialMessage = {
+            role: 'assistant' as const,
+            content: 'Hello! I\'m your coding assistant. How can I help you today?'
+        };
+        setMessages([initialMessage]);
+        // Also update the persistent messages
+        persistentMessages = [initialMessage];
+    };
+
     if (!isOpen) return null;
 
     return (
@@ -85,6 +160,9 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ isOpen, onClose, projectPath 
                 <div className="ai-assistant-header">
                     <h3>AI Coding Assistant</h3>
                     <div className="ai-assistant-actions">
+                        <button onClick={handleDeleteChat} title="Clear Chat">
+                            <span className="material-icons">delete</span>
+                        </button>
                         <button onClick={() => setShowApiKeyForm(!showApiKeyForm)} title="API Key Settings">
                             <span className="material-icons">settings</span>
                         </button>
@@ -114,25 +192,27 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ isOpen, onClose, projectPath 
                         <div className="ai-assistant-messages">
                             {messages.map((msg, idx) => (
                                 <div key={idx} className={`message ${msg.role}`}>
-                                    <div className="message-content">{msg.content}</div>
+                                    <div className="message-content">
+                                        {formatMessageContent(msg.content)}
+                                    </div>
                                 </div>
                             ))}
                             <div ref={messagesEndRef} />
                         </div>
 
                         <form onSubmit={handleSubmit} className="ai-assistant-input">
-              <textarea
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  placeholder="Ask me anything about coding..."
-                  onKeyDown={(e) => {
-                      if (e.key === 'Enter' && !e.shiftKey) {
-                          e.preventDefault();
-                          handleSubmit(e);
-                      }
-                  }}
-                  disabled={isProcessing || !apiKey}
-              />
+                            <textarea
+                                value={input}
+                                onChange={(e) => setInput(e.target.value)}
+                                placeholder="Ask me anything about coding..."
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter' && !e.shiftKey) {
+                                        e.preventDefault();
+                                        handleSubmit(e);
+                                    }
+                                }}
+                                disabled={isProcessing || !apiKey}
+                            />
                             <button
                                 type="submit"
                                 disabled={isProcessing || !apiKey || !input.trim()}

@@ -108,6 +108,19 @@ export default class GroqService {
         return this.saveApiKeyConfig();
     }
 
+    removeUserApiKey(): boolean {
+        this.userApiKey = null;
+        // Automatically fall back to default key if available
+        if (this.defaultApiKey) {
+            this.isUsingDefault = true;
+            this.apiKey = this.defaultApiKey;
+        } else {
+            this.isUsingDefault = false;
+            this.apiKey = null;
+        }
+        return this.saveApiKeyConfig();
+    }
+
     getApiKey(): { key: string | null; isDefault: boolean; userKey: string | null } {
         return {
             key: this.apiKey,

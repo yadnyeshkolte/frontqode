@@ -194,6 +194,7 @@
     gap: 8px;
     justify-content: flex-end;
     margin-top: 12px;
+    flex-wrap: wrap;
 }
 
 .api-key-actions button {
@@ -209,8 +210,8 @@
 }
 
 .api-key-actions button:last-child {
-    background-color: #0e639c;
-    color: #fff;
+    background-color: #f44336;
+    color: #000000;
     border: none;
 }
 
@@ -276,22 +277,6 @@
     background-color: #4a7eb7;
 }
 
-.api-key-actions {
-    display: flex;
-    gap: 8px;
-    justify-content: flex-end;
-    margin-top: 12px;
-    flex-wrap: wrap;
-}
-
-.stored-key-info {
-    margin-top: 16px;
-    padding: 8px;
-    background-color: #2d2d2d;
-    border-radius: 4px;
-    font-size: 14px;
-    color: #aaa;
-}
 
 @keyframes spin {
     from { transform: rotate(0deg); }

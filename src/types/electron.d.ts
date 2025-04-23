@@ -62,6 +62,8 @@ interface ElectronAPI {
         Promise<{ success: boolean; error?: string }>;
     groqHasDefaultApiKey: () =>
         Promise<{ success: boolean; hasDefault?: boolean; error?: string }>;
+    groqRemoveUserApiKey: () =>
+        Promise<{ success: boolean; error?: string }>;
 
     // Menu event listeners
     onMenuNewProject: (callback: () => void) => () => void;
@@ -114,9 +116,6 @@ interface ElectronAPI {
         servers?: never[]; // You might want to define a more specific type here
         error?: string
     }>;
-
-    async
-
 }
 
 interface Window {

@@ -66,6 +66,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
         ipcRenderer.invoke('groq-use-default-with-user-key', apiKey),
     groqHasDefaultApiKey: () =>
         ipcRenderer.invoke('groq-has-default-api-key'),
+    groqRemoveUserApiKey: () =>
+        ipcRenderer.invoke('groq-remove-user-api-key'),
 
     // Set up menu event listeners
     ...setupMenuEvents()

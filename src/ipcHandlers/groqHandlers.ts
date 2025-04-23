@@ -41,6 +41,15 @@ export const setupGroqHandlers = () => {
         }
     });
 
+    ipcMain.handle('groq-remove-user-api-key', async () => {
+        try {
+            const result = groqService.removeUserApiKey();
+            return { success: result };
+        } catch (error) {
+            return { success: false, error: error.message };
+        }
+    });
+
     ipcMain.handle('groq-get-api-key', async () => {
         try {
             const apiKeyInfo = groqService.getApiKey();

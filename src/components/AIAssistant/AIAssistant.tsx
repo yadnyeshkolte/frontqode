@@ -176,22 +176,27 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ isOpen, onClose}) => {
         }
     };
 
-    const handleUseDefaultWithUserKey = async () => {
-        if (!apiKeyInput.trim()) return;
+    const handleRemoveUserApiKey = async () => {
+        if (window.confirm('Are you sure you want to remove your API key? The IDE will use the default key if available.')) {
+            const result = await window.electronAPI.groqRemoveUserApiKey();
+            if (result.success) {
+                // Refresh API key info
+                const keyResult = await window.electronAPI.groqGetApiKey();
+                if (keyResult.success) {
+                    setApiKey(keyResult.apiKey);
+                    setUserStoredKey(null);
+                    setIsUsingDefaultKey(keyResult.isDefault || false);
 
-        const result = await window.electronAPI.groqUseDefaultWithUserKey(apiKeyInput);
-        if (result.success) {
-            // Refresh API key info
-            const keyResult = await window.electronAPI.groqGetApiKey();
-            if (keyResult.success) {
-                setApiKey(keyResult.apiKey);
-                setUserStoredKey(apiKeyInput);
-                setIsUsingDefaultKey(true);
-                setShowApiKeyForm(false);
-                setApiKeyInput('');
+                    // If no default key is available and user key was removed, show the API key form
+                    if (!keyResult.apiKey) {
+                        setShowApiKeyForm(true);
+                    }
+
+                    alert('Your API key has been removed successfully.');
+                }
+            } else {
+                alert(`Failed to remove API key: ${result.error}`);
             }
-        } else {
-            alert(`Failed to configure API keys: ${result.error}`);
         }
     };
 
@@ -262,16 +267,17 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ isOpen, onClose}) => {
                         <div className="api-key-actions">
                             <button onClick={() => setShowApiKeyForm(false)}>Cancel</button>
                             <button onClick={handleSaveApiKey}>Use My Key Only</button>
-                            {hasDefaultKey && (
-                                <button onClick={handleUseDefaultWithUserKey} className="default-and-user-button">
-                                    Use Default Now, Save My Key
-                                </button>
-                            )}
+                            <button
+                                className="remove-key-button"
+                                onClick={handleRemoveUserApiKey}>
+                                Remove My API Key
+                            </button>
                         </div>
 
                         {userStoredKey && (
                             <div className="stored-key-info">
-                                <p>You have a stored API key {isUsingDefaultKey ? "(not currently in use)" : "(currently in use)"}</p>
+                                <p>You have a stored API key {isUsingDefaultKey ? "(not currently in use)" : "(currently in use)"}
+                                </p>
                             </div>
                         )}
                     </div>

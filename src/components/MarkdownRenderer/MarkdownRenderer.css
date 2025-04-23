@@ -35,21 +35,6 @@
 }
 
 /* Lists */
-.markdown-content ul,
-.markdown-content ol {
-    padding-left: 2em;
-}
-
-.markdown-content li {
-}
-
-.markdown-content ul li {
-    list-style-type: disc;
-}
-
-.markdown-content ol li {
-    list-style-type: decimal;
-}
 
 /* Blockquotes */
 .markdown-content blockquote {

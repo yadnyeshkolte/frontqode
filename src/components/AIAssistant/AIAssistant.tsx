@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import './AIAssistant.css';
 import AlertModal from '../AlertModal/AlertModal';
 import SystemService from '../../services/SystemService';
+import MarkdownRenderer from '../MarkdownRenderer/MarkdownRenderer';
 
 interface AIAssistantProps {
     isOpen: boolean;
@@ -13,69 +14,20 @@ interface AIAssistantProps {
 interface Message {
     role: 'user' | 'assistant';
     content: string;
+    id: string; // Add unique ID for messages
 }
+
+// Helper to generate unique IDs
+const generateId = () => Math.random().toString(36).substring(2, 15);
 
 // Store messages outside component to persist between renders
 let persistentMessages: Message[] = [
-    { role: 'assistant', content: 'Hello! I\'m your coding assistant. How can I help you today?' }
+    {
+        role: 'assistant',
+        content: 'Hello! I\'m your coding assistant. How can I help you today?',
+        id: generateId()
+    }
 ];
-
-
-// Helper function to format code blocks in a message
-const formatMessageContent = (content: string): React.ReactNode => {
-    if (!content) return '';
-
-    // Split the content by code block markers
-    const parts = content.split(/```([a-zA-Z]*)\n([\s\S]*?)```/g);
-
-    if (parts.length === 1) {
-        // No code blocks found, return plain text with line breaks preserved
-        return content.split('\n').map((line, i) => (
-            <React.Fragment key={i}>
-                {line}
-                {i < content.split('\n').length - 1 && <br />}
-            </React.Fragment>
-        ));
-    }
-
-    const result: React.ReactNode[] = [];
-
-    for (let i = 0; i < parts.length; i++) {
-        if (i % 3 === 0) {
-            // Regular text
-            if (parts[i].trim()) {
-                result.push(
-                    <span key={`text-${i}`}>
-                        {parts[i].split('\n').map((line, j) => (
-                            <React.Fragment key={j}>
-                                {line}
-                                {j < parts[i].split('\n').length - 1 && <br />}
-                            </React.Fragment>
-                        ))}
-                    </span>
-                );
-            }
-        } else if (i % 3 === 1) {
-            // This is the language identifier - we don't need to render it
-
-        } else if (i % 3 === 2) {
-            // This is the code block content
-            const language = parts[i-1] || 'plaintext';
-            result.push(
-                <div key={`code-${i}`} className="code-block">
-                    <div className="code-header">
-                        <span className="code-language">{language}</span>
-                    </div>
-                    <pre>
-                        <code>{parts[i]}</code>
-                    </pre>
-                </div>
-            );
-        }
-    }
-
-    return result;
-};
 
 const AIAssistant: React.FC<AIAssistantProps> = ({ isOpen, onClose}) => {
     const [messages, setMessages] = useState<Message[]>(persistentMessages);
@@ -87,6 +39,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ isOpen, onClose}) => {
     const [hasDefaultKey, setHasDefaultKey] = useState(false);
     const [isUsingDefaultKey, setIsUsingDefaultKey] = useState(false);
     const [userStoredKey, setUserStoredKey] = useState<string | null>(null);
+    const [copyButtonStates, setCopyButtonStates] = useState<{[key: string]: string}>({});
 
     // Add alert state
     const [alertState, setAlertState] = useState({
@@ -133,6 +86,42 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ isOpen, onClose}) => {
         persistentMessages = messages;
     }, [messages]);
 
+    const copyToClipboard = (text: string, messageId: string) => {
+        navigator.clipboard.writeText(text)
+            .then(() => {
+                // Update copy button text
+                setCopyButtonStates(prev => ({
+                    ...prev,
+                    [messageId]: 'Copied!'
+                }));
+
+                // Reset the button text after 2 seconds
+                setTimeout(() => {
+                    setCopyButtonStates(prev => ({
+                        ...prev,
+                        [messageId]: 'Copy'
+                    }));
+                }, 2000);
+            })
+            .catch(err => {
+                console.error('Failed to copy message:', err);
+
+                // Show error state
+                setCopyButtonStates(prev => ({
+                    ...prev,
+                    [messageId]: 'Failed'
+                }));
+
+                // Reset after 2 seconds
+                setTimeout(() => {
+                    setCopyButtonStates(prev => ({
+                        ...prev,
+                        [messageId]: 'Copy'
+                    }));
+                }, 2000);
+            });
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!input.trim() || isProcessing) return;
@@ -141,17 +130,33 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ isOpen, onClose}) => {
         setInput('');
         setIsProcessing(true);
 
-        setMessages(prev => [...prev, { role: 'user', content: userMessage }]);
+        const userMessageId = generateId();
+        setMessages(prev => [...prev, { role: 'user', content: userMessage, id: userMessageId }]);
 
         try {
             const result = await window.electronAPI.groqGetCompletion(userMessage);
             if (result.success && result.completion) {
-                setMessages(prev => [...prev, { role: 'assistant', content: result.completion }]);
+                const assistantMessageId = generateId();
+                setMessages(prev => [...prev, {
+                    role: 'assistant',
+                    content: result.completion,
+                    id: assistantMessageId
+                }]);
             } else {
-                setMessages(prev => [...prev, { role: 'assistant', content: `Error: ${result.error || 'Unknown error'}` }]);
+                const errorMessageId = generateId();
+                setMessages(prev => [...prev, {
+                    role: 'assistant',
+                    content: `Error: ${result.error || 'Unknown error'}`,
+                    id: errorMessageId
+                }]);
             }
         } catch (error) {
-            setMessages(prev => [...prev, { role: 'assistant', content: `Error: ${error.message}` }]);
+            const errorMessageId = generateId();
+            setMessages(prev => [...prev, {
+                role: 'assistant',
+                content: `Error: ${error.message}`,
+                id: errorMessageId
+            }]);
         } finally {
             setIsProcessing(false);
         }
@@ -257,7 +262,8 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ isOpen, onClose}) => {
         // Reset chat to initial message
         const initialMessage = {
             role: 'assistant' as const,
-            content: 'Hello! I\'m your coding assistant. How can I help you today?'
+            content: 'Hello! I\'m your coding assistant. How can I help you today?',
+            id: generateId()
         };
         setMessages([initialMessage]);
         // Also update the persistent messages
@@ -287,7 +293,6 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ isOpen, onClose}) => {
                 {showApiKeyForm ? (
                     <div className="api-key-form">
                         <h4>Configure Groq API Key</h4>
-                        <p>Enter your Groq API key to use the AI coding assistant.</p>
 
                         {hasDefaultKey && (
                             <div className="default-key-option">
@@ -337,10 +342,31 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ isOpen, onClose}) => {
                 ) : (
                     <>
                         <div className="ai-assistant-messages">
-                            {messages.map((msg, idx) => (
-                                <div key={idx} className={`message ${msg.role}`}>
+                            {messages.map((msg) => (
+                                <div key={msg.id} className={`message ${msg.role}`}>
+                                    {msg.role === 'assistant' && (
+                                        <div className="message-actions">
+                                            <button
+                                                className="copy-message-button"
+                                                onClick={() => copyToClipboard(msg.content, msg.id)}
+                                                title="Copy entire response"
+                                            >
+                                                {copyButtonStates[msg.id] || 'Copy'}
+                                            </button>
+                                        </div>
+                                    )}
                                     <div className="message-content">
-                                        {formatMessageContent(msg.content)}
+                                        {msg.role === 'assistant' ? (
+                                            <MarkdownRenderer content={msg.content} />
+                                        ) : (
+                                            // For user messages, keep the existing text formatting
+                                            msg.content.split('\n').map((line, i) => (
+                                                <React.Fragment key={i}>
+                                                    {line}
+                                                    {i < msg.content.split('\n').length - 1 && <br />}
+                                                </React.Fragment>
+                                            ))
+                                        )}
                                     </div>
                                 </div>
                             ))}

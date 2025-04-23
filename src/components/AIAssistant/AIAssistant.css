@@ -77,6 +77,7 @@
     padding: 10px;
     border-radius: 8px;
     max-width: 90%;
+    position: relative;
 }
 
 .message.user {
@@ -90,10 +91,37 @@
     background-color: #3b3b3b;
     color: #fff;
     line-height: 1.5;
+    padding-top: 30px; /* Add space for the copy button */
 }
 
 .message-content {
     white-space: pre-wrap;
+}
+
+.message-actions {
+    position: absolute;
+    top: 5px;
+    right: 10px;
+    display: flex;
+    gap: 5px;
+}
+
+.copy-message-button {
+    background-color: #252526;
+    color: #ccc;
+    border: none;
+    border-radius: 4px;
+    padding: 3px 8px;
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    opacity: 0.8;
+}
+
+.copy-message-button:hover {
+    background-color: #333;
+    color: #fff;
+    opacity: 1;
 }
 
 /* Code block styling */
@@ -275,6 +303,12 @@
 
 .default-and-user-button:hover {
     background-color: #4a7eb7;
+}
+
+.remove-key-button {
+    background-color: #d32f2f;
+    color: white;
+    border: none;
 }
 
 @keyframes spin {

@@ -1,0 +1,164 @@
+/* src/components/MarkdownRenderer/MarkdownRenderer.css */
+.markdown-content {
+    color: #fff;
+    line-height: 1.6;
+    font-size: 14px;
+}
+
+/* Headers */
+.markdown-content h1,
+.markdown-content h2,
+.markdown-content h3,
+.markdown-content h4,
+.markdown-content h5,
+.markdown-content h6 {
+    font-weight: 600;
+    line-height: 1.25;
+    color: #e8e8e8;
+}
+
+.markdown-content h1 { font-size: 1.8em; }
+.markdown-content h2 { font-size: 1.6em; }
+.markdown-content h3 { font-size: 1.4em; }
+.markdown-content h4 { font-size: 1.2em; }
+.markdown-content h5 { font-size: 1.1em; }
+.markdown-content h6 { font-size: 1em; }
+
+/* Links */
+.markdown-content a {
+    color: #80b2ff;
+    text-decoration: none;
+}
+
+.markdown-content a:hover {
+    text-decoration: underline;
+}
+
+/* Lists */
+.markdown-content ul,
+.markdown-content ol {
+    padding-left: 2em;
+}
+
+.markdown-content li {
+}
+
+.markdown-content ul li {
+    list-style-type: disc;
+}
+
+.markdown-content ol li {
+    list-style-type: decimal;
+}
+
+/* Blockquotes */
+.markdown-content blockquote {
+    padding: 0 1em;
+    color: #b0b0b0;
+    border-left: 4px solid #444;
+}
+
+/* Inline code */
+.markdown-content .inline-code {
+    padding: 0.2em 0.4em;
+    background-color: #2d2d2d;
+    border-radius: 3px;
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    font-size: 85%;
+}
+
+/* Code blocks */
+.markdown-content .code-block {
+    margin: 1em 0;
+    border-radius: 6px;
+    overflow: hidden;
+    background-color: #1e1e1e;
+    border: 1px solid #444;
+}
+
+.markdown-content .code-header {
+    background-color: #252526;
+    padding: 6px 10px;
+    color: #ddd;
+    font-size: 12px;
+    border-bottom: 1px solid #444;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.markdown-content .code-language {
+    text-transform: uppercase;
+    font-family: monospace;
+}
+
+.markdown-content .copy-button {
+    background-color: #3b3b3b;
+    color: #ccc;
+    border: none;
+    border-radius: 4px;
+    padding: 2px 8px;
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.markdown-content .copy-button:hover {
+    background-color: #4b4b4b;
+    color: #fff;
+}
+
+.markdown-content .copy-button:active {
+    transform: scale(0.95);
+}
+
+.markdown-content pre {
+    margin: 0;
+    padding: 12px;
+    overflow-x: auto;
+    background-color: #1e1e1e;
+}
+
+.markdown-content code {
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    font-size: 14px;
+    color: #d4d4d4;
+    line-height: 1.5;
+}
+
+/* Tables */
+.markdown-content table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 1em 0;
+}
+
+.markdown-content table th,
+.markdown-content table td {
+    padding: 8px;
+    border: 1px solid #444;
+    text-align: left;
+}
+
+.markdown-content table th {
+    background-color: #252526;
+    font-weight: 600;
+}
+
+.markdown-content table tr:nth-child(even) {
+    background-color: #222;
+}
+
+/* Horizontal rule */
+.markdown-content hr {
+    height: 1px;
+    border: none;
+    background-color: #666;
+}
+
+/* Images */
+.markdown-content img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 4px;
+}

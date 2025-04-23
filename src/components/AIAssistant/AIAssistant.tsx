@@ -1,6 +1,8 @@
 // src/components/AIAssistant/AIAssistant.tsx
 import React, { useState, useEffect, useRef } from 'react';
 import './AIAssistant.css';
+import AlertModal from '../AlertModal/AlertModal';
+import SystemService from '../../services/SystemService';
 
 interface AIAssistantProps {
     isOpen: boolean;
@@ -86,6 +88,15 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ isOpen, onClose}) => {
     const [isUsingDefaultKey, setIsUsingDefaultKey] = useState(false);
     const [userStoredKey, setUserStoredKey] = useState<string | null>(null);
 
+    // Add alert state
+    const [alertState, setAlertState] = useState({
+        isOpen: false,
+        title: '',
+        message: '',
+        type: 'info' as 'info' | 'warning' | 'error' | 'success',
+        onConfirm: null as (() => void) | null
+    });
+
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -157,7 +168,13 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ isOpen, onClose}) => {
             setShowApiKeyForm(false);
             setApiKeyInput('');
         } else {
-            alert(`Failed to set API key: ${result.error}`);
+            setAlertState({
+                isOpen: true,
+                title: 'Error',
+                message: `Failed to set API key: ${result.error}`,
+                type: 'error',
+                onConfirm: null
+            });
         }
     };
 
@@ -173,36 +190,67 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ isOpen, onClose}) => {
                 setApiKeyInput('');
             }
         } else {
-            alert(`Failed to use default API key: ${result.error}`);
+            setAlertState({
+                isOpen: true,
+                title: 'Error',
+                message: `Failed to use default API key: ${result.error}`,
+                type: 'error',
+                onConfirm: null
+            });
         }
     };
 
     const handleRemoveUserApiKey = async () => {
-        if (window.confirm('Are you sure you want to remove your API key? The IDE will use the default key if available.')) {
-            const result = await window.electronAPI.groqRemoveUserApiKey();
-            if (result.success) {
-                // Refresh API key info
-                const keyResult = await window.electronAPI.groqGetApiKey();
-                if (keyResult.success) {
-                    // Force a re-render by setting apiKey first
-                    setApiKey(keyResult.apiKey);
-                    setUserStoredKey(null);
-                    setIsUsingDefaultKey(keyResult.isDefault || false);
+        setAlertState({
+            isOpen: true,
+            title: 'Remove API Key',
+            message: 'Are you sure you want to remove your API key? The IDE will use the default key if available.',
+            type: 'warning',
+            onConfirm: async () => {
+                const result = await window.electronAPI.groqRemoveUserApiKey();
+                if (result.success) {
+                    // Refresh API key info
+                    const keyResult = await window.electronAPI.groqGetApiKey();
+                    if (keyResult.success) {
+                        // Force a re-render by setting apiKey first
+                        setApiKey(keyResult.apiKey);
+                        setUserStoredKey(null);
+                        setIsUsingDefaultKey(keyResult.isDefault || false);
 
-                    // Force input state to update as well
-                    setInput('');
+                        // Force input state to update as well
+                        setInput('');
 
-                    // If no default key is available and user key was removed, show the API key form
-                    if (!keyResult.apiKey) {
-                        setShowApiKeyForm(true);
+                        // If no default key is available and user key was removed, show the API key form
+                        if (!keyResult.apiKey) {
+                            setShowApiKeyForm(true);
+                        }
+
+                        // Show restart alert
+                        setAlertState({
+                            isOpen: true,
+                            title: 'API Key Removed',
+                            message: 'API key has been removed successfully. Please restart the IDE to apply changes.',
+                            type: 'error',
+                            onConfirm: async () => {
+                                await SystemService.restartApplication();
+                            }
+                        });
                     }
-
-                    alert('It has been removed successfully. Plz restart the IDE');
+                } else {
+                    setAlertState({
+                        isOpen: true,
+                        title: 'Error',
+                        message: `Failed to remove API key: ${result.error}`,
+                        type: 'error',
+                        onConfirm: null
+                    });
                 }
-            } else {
-                alert(`Failed to remove API key: ${result.error}`);
             }
-        }
+        });
+    };
+
+    const closeAlert = () => {
+        setAlertState(prev => ({ ...prev, isOpen: false }));
     };
 
     const handleDeleteChat = () => {
@@ -324,6 +372,18 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ isOpen, onClose}) => {
                         </form>
                     </>
                 )}
+
+                {/* Alert Modal */}
+                <AlertModal
+                    isOpen={alertState.isOpen}
+                    title={alertState.title}
+                    message={alertState.message}
+                    type={alertState.type}
+                    onClose={closeAlert}
+                    onConfirm={alertState.onConfirm ? () => alertState.onConfirm?.() : undefined}
+                    confirmButtonText="OK"
+                    showCancelButton={alertState.onConfirm !== null}
+                />
             </div>
         </div>
     );

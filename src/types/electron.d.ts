@@ -116,6 +116,10 @@ interface ElectronAPI {
         servers?: never[]; // You might want to define a more specific type here
         error?: string
     }>;
+
+    restartApplication: () => Promise<{ success: boolean; error?: string }>;
+    async
+
 }
 
 interface Window {

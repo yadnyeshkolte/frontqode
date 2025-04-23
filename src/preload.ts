@@ -69,6 +69,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
     groqRemoveUserApiKey: () =>
         ipcRenderer.invoke('groq-remove-user-api-key'),
 
+    restartApplication: () => ipcRenderer.invoke('restart-application'),
+
     // Set up menu event listeners
     ...setupMenuEvents()
 });

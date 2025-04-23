@@ -6,6 +6,7 @@ import { setupRecentFilesHandlers } from './ipcHandlers/recentFilesHandlers';
 import { setupTerminalHandlers } from './ipcHandlers/terminalHandlers';
 import { setupLanguageServerHandlers } from './ipcHandlers/languageServerHandlers';
 import { setupGroqHandlers } from './ipcHandlers/groqHandlers';
+import { setupSystemHandlers } from './ipcHandlers/systemHandlers';
 import { setupApplicationMenu } from './menu';
 
 
@@ -69,13 +70,14 @@ const createWindow = (): void => {
 };
 
   // Set up all handlers
-  setupProjectHandlers();
-  setupGitHandlers();
-  setupFileHandlers();
-  setupRecentFilesHandlers();
-  setupTerminalHandlers();
-  setupLanguageServerHandlers();
-  setupGroqHandlers();
+setupProjectHandlers();
+setupGitHandlers();
+setupFileHandlers();
+setupRecentFilesHandlers();
+setupTerminalHandlers();
+setupLanguageServerHandlers();
+setupGroqHandlers();
+setupSystemHandlers();
 
 
 // This method will be called when Electron has finished

@@ -54,8 +54,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
     stopLSPServer: (languageId: string) => ipcRenderer.invoke('stop-lsp-server', languageId),
     installLSPServer: (languageId: string) => ipcRenderer.invoke('install-lsp-server', languageId),
 
-    groqGetCompletion: (prompt: string, maxTokens?: number) =>
-        ipcRenderer.invoke('groq-get-completion', prompt, maxTokens),
+    groqGetCompletion: (prompt: string, maxTokens?: number, model?: string) =>
+        ipcRenderer.invoke('groq-get-completion', prompt, maxTokens, model),
     groqSetApiKey: (apiKey: string) =>
         ipcRenderer.invoke('groq-set-api-key', apiKey),
     groqGetApiKey: () =>
@@ -68,8 +68,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
         ipcRenderer.invoke('groq-has-default-api-key'),
     groqRemoveUserApiKey: () =>
         ipcRenderer.invoke('groq-remove-user-api-key'),
-    groqGetChatCompletion: (messages: any[], maxTokens?: number) =>
-        ipcRenderer.invoke('groq-get-chat-completion', messages, maxTokens),
+    groqGetChatCompletion: (messages: any[], maxTokens?: number, model?: string) =>
+        ipcRenderer.invoke('groq-get-chat-completion', messages, maxTokens, model),
 
     restartApplication: () => ipcRenderer.invoke('restart-application'),
 

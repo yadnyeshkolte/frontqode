@@ -429,7 +429,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ isOpen, onClose}) => {
                             </div>
 
                             <div className="model-selection-setting">
-                                <label htmlFor="model-selection">Model:</label>
+                                <label htmlFor="model-selection">Model (Select & Try it Out!):</label>
                                 <select
                                     id="model-selection"
                                     value={selectedModel}
@@ -443,7 +443,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ isOpen, onClose}) => {
                                 </select>
                                 <div className="model-info-tooltip">
                                     <p className="model-info-text">
-                                        TPM = Tokens Per Minute free usage limit
+                                        TPM = Tokens Per Minute (free usage limit)
                                     </p>
                                 </div>
                             </div>

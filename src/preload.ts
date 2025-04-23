@@ -56,8 +56,14 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
     groqGetCompletion: (prompt: string, maxTokens?: number) =>
         ipcRenderer.invoke('groq-get-completion', prompt, maxTokens),
-    groqSetApiKey: (apiKey: string) => ipcRenderer.invoke('groq-set-api-key', apiKey),
-    groqGetApiKey: () => ipcRenderer.invoke('groq-get-api-key'),
+    groqSetApiKey: (apiKey: string) =>
+        ipcRenderer.invoke('groq-set-api-key', apiKey),
+    groqGetApiKey: () =>
+        ipcRenderer.invoke('groq-get-api-key'),
+    groqUseDefaultApiKey: () =>
+        ipcRenderer.invoke('groq-use-default-api-key'),
+    groqHasDefaultApiKey: () =>
+        ipcRenderer.invoke('groq-has-default-api-key'),
 
     // Set up menu event listeners
     ...setupMenuEvents()

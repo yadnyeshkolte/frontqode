@@ -48,7 +48,13 @@ interface ElectronAPI {
     groqGetCompletion: (prompt: string, maxTokens?: number) =>
         Promise<{ success: boolean; completion?: string; error?: string }>;
     groqSetApiKey: (apiKey: string) => Promise<{ success: boolean; error?: string }>;
-    groqGetApiKey: () => Promise<{ success: boolean; apiKey?: string; error?: string }>;
+    groqGetApiKey: () => Promise<{
+        isDefault: boolean;
+        success: boolean; apiKey?: string; error?: string }>;
+    groqUseDefaultApiKey: () =>
+        Promise<{ success: boolean; error?: string }>;
+    groqHasDefaultApiKey: () =>
+        Promise<{ success: boolean; hasDefault?: boolean; error?: string }>;
 
     // Menu event listeners
     onMenuNewProject: (callback: () => void) => () => void;
@@ -101,6 +107,9 @@ interface ElectronAPI {
         servers?: never[]; // You might want to define a more specific type here
         error?: string
     }>;
+
+    async
+
 }
 
 interface Window {

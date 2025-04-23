@@ -1,3 +1,4 @@
+// src/ipcHandlers/groqHandlers.ts
 import { ipcMain } from 'electron';
 import GroqService from '../services/GroqService';
 
@@ -22,10 +23,32 @@ export const setupGroqHandlers = () => {
         }
     });
 
+    ipcMain.handle('groq-use-default-api-key', async () => {
+        try {
+            const result = groqService.useDefaultApiKey();
+            return { success: result };
+        } catch (error) {
+            return { success: false, error: error.message };
+        }
+    });
+
     ipcMain.handle('groq-get-api-key', async () => {
         try {
-            const apiKey = groqService.getApiKey();
-            return { success: true, apiKey };
+            const apiKeyInfo = groqService.getApiKey();
+            return {
+                success: true,
+                apiKey: apiKeyInfo.key,
+                isDefault: apiKeyInfo.isDefault
+            };
+        } catch (error) {
+            return { success: false, error: error.message };
+        }
+    });
+
+    ipcMain.handle('groq-has-default-api-key', async () => {
+        try {
+            const hasDefault = groqService.hasDefaultApiKey();
+            return { success: true, hasDefault };
         } catch (error) {
             return { success: false, error: error.message };
         }

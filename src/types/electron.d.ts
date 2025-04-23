@@ -46,8 +46,7 @@ interface ElectronAPI {
         Promise<{ success: boolean; error?: string }>;
 
     // Groq operations
-    groqGetCompletion: (prompt: string, maxTokens?: number) =>
-        Promise<{ success: boolean; completion?: string; error?: string }>;
+
     groqSetApiKey: (apiKey: string) => Promise<{ success: boolean; error?: string }>;
     groqGetApiKey: () => Promise<{
         isDefault: boolean;
@@ -64,7 +63,9 @@ interface ElectronAPI {
         Promise<{ success: boolean; hasDefault?: boolean; error?: string }>;
     groqRemoveUserApiKey: () =>
         Promise<{ success: boolean; error?: string }>;
-    groqGetChatCompletion: (messages: { role: 'user' | 'assistant' | 'system'; content: string }[], maxTokens?: number) =>
+    groqGetCompletion: (prompt: string, maxTokens?: number, model?: string) =>
+        Promise<{ success: boolean; completion?: string; error?: string }>;
+    groqGetChatCompletion: (messages: { role: 'user' | 'assistant' | 'system'; content: string }[], maxTokens?: number, model?: string) =>
         Promise<{ success: boolean; completion?: string; error?: string }>;
 
     // Menu event listeners

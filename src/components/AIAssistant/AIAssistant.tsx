@@ -17,6 +17,28 @@ interface Message {
     id: string; // Add unique ID for messages
 }
 
+interface GroqModelInfo {
+    id: string;
+    name: string;
+    tokensPerMinute: number;
+}
+
+const GROQ_MODELS: GroqModelInfo[] = [
+    { id: 'deepseek-r1-distill-llama-70b', name: 'DeepSeek R1 Distill LLaMA 70B', tokensPerMinute: 6000 },
+    { id: 'allam-2-7b', name: 'Allam 2 7B', tokensPerMinute: 6000 },
+    { id: 'compound-beta', name: 'Compound Beta', tokensPerMinute: 70000 },
+    { id: 'compound-beta-mini', name: 'Compound Beta Mini', tokensPerMinute: 70000 },
+    { id: 'gemma2-9b-it', name: 'Gemma 2 9B', tokensPerMinute: 15000 },
+    { id: 'llama-3.1-8b-instant', name: 'LLaMA 3.1 8B Instant', tokensPerMinute: 6000 },
+    { id: 'llama-3.3-70b-versatile', name: 'LLaMA 3.3 70B Versatile', tokensPerMinute: 12000 },
+    { id: 'llama-guard-3-8b', name: 'LLaMA Guard 3 8B', tokensPerMinute: 15000 },
+    { id: 'llama3-70b-8192', name: 'LLaMA 3 70B 8192', tokensPerMinute: 6000 },
+    { id: 'llama3-8b-8192', name: 'LLaMA 3 8B 8192', tokensPerMinute: 6000 },
+    { id: 'meta-llama/llama-4-maverick-17b-128e-instruct', name: 'LLaMA 4 Maverick 17B', tokensPerMinute: 6000 },
+    { id: 'meta-llama/llama-4-scout-17b-16e-instruct', name: 'LLaMA 4 Scout 17B', tokensPerMinute: 30000 },
+    { id: 'mistral-saba-24b', name: 'Mistral Saba 24B', tokensPerMinute: 6000 },
+    { id: 'qwen-qwq-32b', name: 'Qwen QWQ 32B', tokensPerMinute: 6000 }
+];
 // Helper to generate unique IDs
 const generateId = () => Math.random().toString(36).substring(2, 15);
 
@@ -49,6 +71,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ isOpen, onClose}) => {
     const [userStoredKey, setUserStoredKey] = useState<string | null>(null);
     const [copyButtonStates, setCopyButtonStates] = useState<{[key: string]: string}>({});
     const [tokenLimit, setTokenLimit] = useState(4000); // Increased default token limit
+    const [selectedModel, setSelectedModel] = useState('deepseek-r1-distill-llama-70b');
 
     // Add alert state
     const [alertState, setAlertState] = useState({
@@ -175,8 +198,12 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ isOpen, onClose}) => {
                 content: systemMessage.content
             });
 
-            // Make API request with the full conversation history
-            const result = await window.electronAPI.groqGetChatCompletion(chatMessages, tokenLimit);
+            // Make API request with the full conversation history and selected model
+            const result = await window.electronAPI.groqGetChatCompletion(
+                chatMessages,
+                tokenLimit,
+                selectedModel
+            );
 
             if (result.success && result.completion) {
                 // Clean up any internal tags in the response
@@ -207,6 +234,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ isOpen, onClose}) => {
             setIsProcessing(false);
         }
     };
+
 
     const handleSaveApiKey = async () => {
         if (!apiKeyInput.trim()) return;
@@ -398,6 +426,26 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ isOpen, onClose}) => {
                                     <option value={15000}>15000 tokens (~11,250 words)</option>
                                     <option value={20000}>20000 tokens (~15,000 words)</option>
                                 </select>
+                            </div>
+
+                            <div className="model-selection-setting">
+                                <label htmlFor="model-selection">Model:</label>
+                                <select
+                                    id="model-selection"
+                                    value={selectedModel}
+                                    onChange={(e) => setSelectedModel(e.target.value)}
+                                >
+                                    {GROQ_MODELS.map(model => (
+                                        <option key={model.id} value={model.id}>
+                                            {model.name} ({model.tokensPerMinute.toLocaleString()} TPM free)
+                                        </option>
+                                    ))}
+                                </select>
+                                <div className="model-info-tooltip">
+                                    <p className="model-info-text">
+                                        TPM = Tokens Per Minute free usage limit
+                                    </p>
+                                </div>
                             </div>
                         </div>
 

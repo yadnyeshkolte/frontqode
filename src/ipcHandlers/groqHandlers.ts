@@ -5,24 +5,25 @@ import GroqService, { ChatMessage } from '../services/GroqService';
 const groqService = new GroqService();
 
 export const setupGroqHandlers = () => {
-    ipcMain.handle('groq-get-completion', async (_, prompt: string, maxTokens = 50000) => {
+    ipcMain.handle('groq-get-completion', async (_, prompt: string, maxTokens = 50000, model = 'deepseek-r1-distill-llama-70b') => {
         try {
-            const completion = await groqService.getCompletion(prompt, maxTokens);
+            const completion = await groqService.getCompletion(prompt, maxTokens, model);
             return { success: true, completion };
         } catch (error) {
             return { success: false, error: error.message };
         }
     });
 
-    ipcMain.handle('groq-get-chat-completion', async (_, messages: ChatMessage[], maxTokens = 50000) => {
+    ipcMain.handle('groq-get-chat-completion', async (_, messages: ChatMessage[], maxTokens = 50000, model = 'deepseek-r1-distill-llama-70b') => {
         try {
-            const completion = await groqService.getChatCompletion(messages, maxTokens);
+            const completion = await groqService.getChatCompletion(messages, maxTokens, model);
             return { success: true, completion };
         } catch (error) {
             return { success: false, error: error.message };
         }
     });
 
+    // Other handlers remain unchanged...
     ipcMain.handle('groq-set-api-key', async (_, apiKey: string) => {
         try {
             const result = groqService.setApiKey(apiKey);

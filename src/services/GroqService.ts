@@ -138,11 +138,12 @@ export default class GroqService {
         return this.defaultApiKey !== null;
     }
 
-    async getCompletion(prompt: string, maxTokens = 2000): Promise<string> {
-        return this.getChatCompletion([{ role: 'user', content: prompt }], maxTokens);
+// getCompletion to pass the model parameter
+    async getCompletion(prompt: string, maxTokens = 2000, model = 'deepseek-r1-distill-llama-70b'): Promise<string> {
+        return this.getChatCompletion([{ role: 'user', content: prompt }], maxTokens, model);
     }
 
-    async getChatCompletion(messages: ChatMessage[], maxTokens = 2000): Promise<string> {
+    async getChatCompletion(messages: ChatMessage[], maxTokens = 2000, model = 'deepseek-r1-distill-llama-70b'): Promise<string> {
         if (!this.apiKey) {
             throw new Error('API key not configured');
         }
@@ -151,7 +152,7 @@ export default class GroqService {
             const response = await axios.post<GroqCompletionResponse>(
                 `${this.baseUrl}/chat/completions`,
                 {
-                    model: 'deepseek-r1-distill-llama-70b',
+                    model: model, // Now using the model parameter
                     messages: messages,
                     max_tokens: maxTokens
                 },
@@ -174,6 +175,7 @@ export default class GroqService {
             throw error;
         }
     }
+
 
     // Helper method to clean up any internal tags from the model's response
     private cleanupInternalTags(content: string): string {

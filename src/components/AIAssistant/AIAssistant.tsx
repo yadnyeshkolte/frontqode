@@ -83,6 +83,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ isOpen, onClose}) => {
     const [apiKeyInput, setApiKeyInput] = useState('');
     const [hasDefaultKey, setHasDefaultKey] = useState(false);
     const [isUsingDefaultKey, setIsUsingDefaultKey] = useState(false);
+    const [userStoredKey, setUserStoredKey] = useState<string | null>(null);
 
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -96,9 +97,14 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ isOpen, onClose}) => {
 
         // Load API key on component mount
         window.electronAPI.groqGetApiKey().then(result => {
-            if (result.success && result.apiKey) {
-                setApiKey(result.apiKey);
+            if (result.success) {
+                setApiKey(result.apiKey || null);
                 setIsUsingDefaultKey(result.isDefault || false);
+                setUserStoredKey(result.userKey || null);
+
+                if (!result.apiKey) {
+                    setShowApiKeyForm(true);
+                }
             } else {
                 setShowApiKeyForm(true);
             }
@@ -145,6 +151,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ isOpen, onClose}) => {
         const result = await window.electronAPI.groqSetApiKey(apiKeyInput);
         if (result.success) {
             setApiKey(apiKeyInput);
+            setUserStoredKey(apiKeyInput);
             setIsUsingDefaultKey(false);
             setShowApiKeyForm(false);
             setApiKeyInput('');
@@ -166,6 +173,25 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ isOpen, onClose}) => {
             }
         } else {
             alert(`Failed to use default API key: ${result.error}`);
+        }
+    };
+
+    const handleUseDefaultWithUserKey = async () => {
+        if (!apiKeyInput.trim()) return;
+
+        const result = await window.electronAPI.groqUseDefaultWithUserKey(apiKeyInput);
+        if (result.success) {
+            // Refresh API key info
+            const keyResult = await window.electronAPI.groqGetApiKey();
+            if (keyResult.success) {
+                setApiKey(keyResult.apiKey);
+                setUserStoredKey(apiKeyInput);
+                setIsUsingDefaultKey(true);
+                setShowApiKeyForm(false);
+                setApiKeyInput('');
+            }
+        } else {
+            alert(`Failed to configure API keys: ${result.error}`);
         }
     };
 
@@ -232,10 +258,22 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ isOpen, onClose}) => {
                             onChange={(e) => setApiKeyInput(e.target.value)}
                             placeholder="Enter your Groq API key"
                         />
+
                         <div className="api-key-actions">
                             <button onClick={() => setShowApiKeyForm(false)}>Cancel</button>
-                            <button onClick={handleSaveApiKey}>Save</button>
+                            <button onClick={handleSaveApiKey}>Use My Key Only</button>
+                            {hasDefaultKey && (
+                                <button onClick={handleUseDefaultWithUserKey} className="default-and-user-button">
+                                    Use Default Now, Save My Key
+                                </button>
+                            )}
                         </div>
+
+                        {userStoredKey && (
+                            <div className="stored-key-info">
+                                <p>You have a stored API key {isUsingDefaultKey ? "(not currently in use)" : "(currently in use)"}</p>
+                            </div>
+                        )}
                     </div>
                 ) : (
                     <>

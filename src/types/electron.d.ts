@@ -45,13 +45,20 @@ interface ElectronAPI {
     installLSPServer: (languageId: string) =>
         Promise<{ success: boolean; error?: string }>;
 
+    // Groq operations
     groqGetCompletion: (prompt: string, maxTokens?: number) =>
         Promise<{ success: boolean; completion?: string; error?: string }>;
     groqSetApiKey: (apiKey: string) => Promise<{ success: boolean; error?: string }>;
     groqGetApiKey: () => Promise<{
         isDefault: boolean;
-        success: boolean; apiKey?: string; error?: string }>;
+        success: boolean;
+        apiKey?: string;
+        userKey?: string;
+        error?: string
+    }>;
     groqUseDefaultApiKey: () =>
+        Promise<{ success: boolean; error?: string }>;
+    groqUseDefaultWithUserKey: (apiKey: string) =>
         Promise<{ success: boolean; error?: string }>;
     groqHasDefaultApiKey: () =>
         Promise<{ success: boolean; hasDefault?: boolean; error?: string }>;

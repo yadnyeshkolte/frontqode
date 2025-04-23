@@ -3,6 +3,7 @@ import axios from 'axios';
 import { app } from 'electron';
 import * as fs from 'fs';
 import * as path from 'path';
+import * as dotenv from 'dotenv';
 
 export interface GroqCompletionResponse {
     choices: {
@@ -14,11 +15,16 @@ export interface GroqCompletionResponse {
 
 export default class GroqService {
     private apiKey: string | null = null;
+    private userApiKey: string | null = null;
     private baseUrl = 'https://api.groq.com/openai/v1';
-    private configPath: string;
-    private defaultApiKey: string | null = null;
+    private readonly configPath: string;
+    private readonly defaultApiKey: string | null = null;
+    private isUsingDefault = false;
 
     constructor() {
+        // Load environment variables from .env file
+        dotenv.config();
+
         // Default path for storing config
         this.configPath = path.join(
             app.getPath('userData'),
@@ -28,7 +34,7 @@ export default class GroqService {
         // Try to get default API key from environment variables
         this.defaultApiKey = process.env.GROQ_API_KEY || null;
 
-        // Try to load user's saved API key
+        // Load saved configuration
         this.loadApiKey();
     }
 
@@ -37,46 +43,76 @@ export default class GroqService {
             if (fs.existsSync(this.configPath)) {
                 const configData = fs.readFileSync(this.configPath, 'utf8');
                 const config = JSON.parse(configData);
-                this.apiKey = config.apiKey || null;
+
+                this.userApiKey = config.userApiKey || null;
+                this.isUsingDefault = config.useDefault || false;
+
+                // Set active API key based on configuration
+                if (this.isUsingDefault) {
+                    this.apiKey = this.defaultApiKey;
+                } else {
+                    this.apiKey = this.userApiKey;
+                }
             } else {
-                // If no saved key exists, use the default key
-                this.apiKey = this.defaultApiKey;
+                // If no saved config exists, and we have a default key, use it
+                if (this.defaultApiKey) {
+                    this.isUsingDefault = true;
+                    this.apiKey = this.defaultApiKey;
+                    this.saveApiKeyConfig();
+                }
             }
         } catch (error) {
             console.error('Error loading API key:', error);
-            // Fallback to default key on error
-            this.apiKey = this.defaultApiKey;
+            // Fallback to default key on error if available
+            if (this.defaultApiKey) {
+                this.isUsingDefault = true;
+                this.apiKey = this.defaultApiKey;
+            }
         }
     }
 
-    private saveApiKey(apiKey: string | null): boolean {
+    private saveApiKeyConfig(): boolean {
         try {
             fs.writeFileSync(
                 this.configPath,
-                JSON.stringify({ apiKey, useDefault: apiKey === null }),
+                JSON.stringify({
+                    userApiKey: this.userApiKey,
+                    useDefault: this.isUsingDefault
+                }),
                 'utf8'
             );
             return true;
         } catch (error) {
-            console.error('Error saving API key:', error);
+            console.error('Error saving API key configuration:', error);
             return false;
         }
     }
 
     setApiKey(apiKey: string): boolean {
+        this.userApiKey = apiKey;
         this.apiKey = apiKey;
-        return this.saveApiKey(apiKey);
+        this.isUsingDefault = false;
+        return this.saveApiKeyConfig();
     }
 
     useDefaultApiKey(): boolean {
+        this.isUsingDefault = true;
         this.apiKey = this.defaultApiKey;
-        return this.saveApiKey(null);
+        return this.saveApiKeyConfig();
     }
 
-    getApiKey(): { key: string | null; isDefault: boolean } {
+    setUseDefaultWithUserKey(apiKey: string): boolean {
+        this.userApiKey = apiKey;
+        this.isUsingDefault = true;
+        this.apiKey = this.defaultApiKey;
+        return this.saveApiKeyConfig();
+    }
+
+    getApiKey(): { key: string | null; isDefault: boolean; userKey: string | null } {
         return {
             key: this.apiKey,
-            isDefault: this.apiKey === this.defaultApiKey
+            isDefault: this.isUsingDefault,
+            userKey: this.userApiKey
         };
     }
 

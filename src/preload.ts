@@ -62,6 +62,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
         ipcRenderer.invoke('groq-get-api-key'),
     groqUseDefaultApiKey: () =>
         ipcRenderer.invoke('groq-use-default-api-key'),
+    groqUseDefaultWithUserKey: (apiKey: string) =>
+        ipcRenderer.invoke('groq-use-default-with-user-key', apiKey),
     groqHasDefaultApiKey: () =>
         ipcRenderer.invoke('groq-has-default-api-key'),
 

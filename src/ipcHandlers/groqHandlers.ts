@@ -32,13 +32,23 @@ export const setupGroqHandlers = () => {
         }
     });
 
+    ipcMain.handle('groq-use-default-with-user-key', async (_, apiKey: string) => {
+        try {
+            const result = groqService.setUseDefaultWithUserKey(apiKey);
+            return { success: result };
+        } catch (error) {
+            return { success: false, error: error.message };
+        }
+    });
+
     ipcMain.handle('groq-get-api-key', async () => {
         try {
             const apiKeyInfo = groqService.getApiKey();
             return {
                 success: true,
                 apiKey: apiKeyInfo.key,
-                isDefault: apiKeyInfo.isDefault
+                isDefault: apiKeyInfo.isDefault,
+                userKey: apiKeyInfo.userKey
             };
         } catch (error) {
             return { success: false, error: error.message };

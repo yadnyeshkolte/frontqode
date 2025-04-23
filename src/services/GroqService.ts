@@ -13,6 +13,11 @@ export interface GroqCompletionResponse {
     }[];
 }
 
+export interface ChatMessage {
+    role: 'user' | 'assistant' | 'system';
+    content: string;
+}
+
 export default class GroqService {
     private apiKey: string | null = null;
     private userApiKey: string | null = null;
@@ -133,7 +138,11 @@ export default class GroqService {
         return this.defaultApiKey !== null;
     }
 
-    async getCompletion(prompt: string, maxTokens = 500): Promise<string> {
+    async getCompletion(prompt: string, maxTokens = 2000): Promise<string> {
+        return this.getChatCompletion([{ role: 'user', content: prompt }], maxTokens);
+    }
+
+    async getChatCompletion(messages: ChatMessage[], maxTokens = 2000): Promise<string> {
         if (!this.apiKey) {
             throw new Error('API key not configured');
         }
@@ -142,8 +151,8 @@ export default class GroqService {
             const response = await axios.post<GroqCompletionResponse>(
                 `${this.baseUrl}/chat/completions`,
                 {
-                    model: 'llama3-70b-8192',
-                    messages: [{ role: 'user', content: prompt }],
+                    model: 'deepseek-r1-distill-llama-70b',
+                    messages: messages,
                     max_tokens: maxTokens
                 },
                 {
@@ -154,15 +163,37 @@ export default class GroqService {
                 }
             );
 
-            return response.data.choices[0].message.content;
+            let content = response.data.choices[0].message.content;
+
+            // Clean up any internal tags that might appear in the response
+            content = this.cleanupInternalTags(content);
+
+            return content;
         } catch (error) {
             console.error('Error getting completion from Groq:', error);
             throw error;
         }
     }
 
+    // Helper method to clean up any internal tags from the model's response
+    private cleanupInternalTags(content: string): string {
+        // Remove <think> tags and their contents
+        content = content.replace(/<think>[\s\S]*?<\/think>/g, '');
+
+        // Remove any other potentially problematic tags (add more as needed)
+        content = content.replace(/<reasoning>[\s\S]*?<\/reasoning>/g, '');
+        content = content.replace(/<reflection>[\s\S]*?<\/reflection>/g, '');
+
+        // Remove any standalone opening or closing tags
+        content = content.replace(/<\/?think>/g, '');
+        content = content.replace(/<\/?reasoning>/g, '');
+        content = content.replace(/<\/?reflection>/g, '');
+
+        return content.trim();
+    }
+
     async getCodeCompletion(code: string, language: string): Promise<string> {
         const prompt = `Complete the following ${language} code:\n\n${code}`;
-        return this.getCompletion(prompt, 200);
+        return this.getCompletion(prompt, 1000);
     }
 }

@@ -68,6 +68,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
         ipcRenderer.invoke('groq-has-default-api-key'),
     groqRemoveUserApiKey: () =>
         ipcRenderer.invoke('groq-remove-user-api-key'),
+    groqGetChatCompletion: (messages: any[], maxTokens?: number) =>
+        ipcRenderer.invoke('groq-get-chat-completion', messages, maxTokens),
 
     restartApplication: () => ipcRenderer.invoke('restart-application'),
 

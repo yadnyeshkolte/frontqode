@@ -311,7 +311,38 @@
     border: none;
 }
 
+
+.advanced-settings {
+    margin-top: 20px;
+    border-top: 1px solid #ddd;
+    padding-top: 15px;
+}
+
+.token-limit-setting {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 10px;
+}
+
+.token-limit-setting label {
+    margin-right: 10px;
+    font-size: 14px;
+}
+
+.token-limit-setting select {
+    padding: 6px 10px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    background-color: #fff;
+    font-size: 14px;
+    flex-grow: 1;
+    max-width: 250px;
+}
+
 @keyframes spin {
     from { transform: rotate(0deg); }
     to { transform: rotate(360deg); }
 }
+
+

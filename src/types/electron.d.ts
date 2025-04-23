@@ -64,6 +64,8 @@ interface ElectronAPI {
         Promise<{ success: boolean; hasDefault?: boolean; error?: string }>;
     groqRemoveUserApiKey: () =>
         Promise<{ success: boolean; error?: string }>;
+    groqGetChatCompletion: (messages: { role: 'user' | 'assistant' | 'system'; content: string }[], maxTokens?: number) =>
+        Promise<{ success: boolean; completion?: string; error?: string }>;
 
     // Menu event listeners
     onMenuNewProject: (callback: () => void) => () => void;

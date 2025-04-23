@@ -12,7 +12,7 @@ interface AIAssistantProps {
 }
 
 interface Message {
-    role: 'user' | 'assistant';
+    role: 'user' | 'assistant' | 'system';
     content: string;
     id: string; // Add unique ID for messages
 }
@@ -20,8 +20,16 @@ interface Message {
 // Helper to generate unique IDs
 const generateId = () => Math.random().toString(36).substring(2, 15);
 
+// Initial system message to instruct the AI
+const systemMessage: Message = {
+    role: 'system',
+    content: 'You are a helpful coding assistant. Provide complete and thorough responses to code-related questions. Remember previous parts of our conversation to maintain context. Never use or include tags like <think>, <reasoning>, or <reflection> in your responses.',
+    id: generateId()
+};
+
 // Store messages outside component to persist between renders
 let persistentMessages: Message[] = [
+    systemMessage,
     {
         role: 'assistant',
         content: 'Hello! I\'m your coding assistant. How can I help you today?',
@@ -40,6 +48,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ isOpen, onClose}) => {
     const [isUsingDefaultKey, setIsUsingDefaultKey] = useState(false);
     const [userStoredKey, setUserStoredKey] = useState<string | null>(null);
     const [copyButtonStates, setCopyButtonStates] = useState<{[key: string]: string}>({});
+    const [tokenLimit, setTokenLimit] = useState(4000); // Increased default token limit
 
     // Add alert state
     const [alertState, setAlertState] = useState({
@@ -85,6 +94,23 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ isOpen, onClose}) => {
     useEffect(() => {
         persistentMessages = messages;
     }, [messages]);
+
+    // Helper to clean up any potential internal tags in a message
+    const cleanupInternalTags = (content: string): string => {
+        // Remove <think> tags and their contents
+        content = content.replace(/<think>[\s\S]*?<\/think>/g, '');
+
+        // Remove any other potentially problematic tags
+        content = content.replace(/<reasoning>[\s\S]*?<\/reasoning>/g, '');
+        content = content.replace(/<reflection>[\s\S]*?<\/reflection>/g, '');
+
+        // Remove any standalone opening or closing tags
+        content = content.replace(/<\/?think>/g, '');
+        content = content.replace(/<\/?reasoning>/g, '');
+        content = content.replace(/<\/?reflection>/g, '');
+
+        return content.trim();
+    };
 
     const copyToClipboard = (text: string, messageId: string) => {
         navigator.clipboard.writeText(text)
@@ -134,12 +160,32 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ isOpen, onClose}) => {
         setMessages(prev => [...prev, { role: 'user', content: userMessage, id: userMessageId }]);
 
         try {
-            const result = await window.electronAPI.groqGetCompletion(userMessage);
+            // Convert messages to the format expected by the API
+            // We'll only include the visible messages (not the system message)
+            const chatMessages = messages
+                .filter(msg => msg.role !== 'system') // Skip system message for display
+                .map(msg => ({ role: msg.role, content: msg.content }));
+
+            // Add the new user message
+            chatMessages.push({ role: 'user', content: userMessage });
+
+            // Add system message at the beginning for context
+            chatMessages.unshift({
+                role: 'system',
+                content: systemMessage.content
+            });
+
+            // Make API request with the full conversation history
+            const result = await window.electronAPI.groqGetChatCompletion(chatMessages, tokenLimit);
+
             if (result.success && result.completion) {
+                // Clean up any internal tags in the response
+                const cleanedResponse = cleanupInternalTags(result.completion);
+
                 const assistantMessageId = generateId();
                 setMessages(prev => [...prev, {
                     role: 'assistant',
-                    content: result.completion,
+                    content: cleanedResponse,
                     id: assistantMessageId
                 }]);
             } else {
@@ -259,15 +305,15 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ isOpen, onClose}) => {
     };
 
     const handleDeleteChat = () => {
-        // Reset chat to initial message
+        // Reset chat to initial message, but keep system message
         const initialMessage = {
             role: 'assistant' as const,
             content: 'Hello! I\'m your coding assistant. How can I help you today?',
             id: generateId()
         };
-        setMessages([initialMessage]);
+        setMessages([systemMessage, initialMessage]);
         // Also update the persistent messages
-        persistentMessages = [initialMessage];
+        persistentMessages = [systemMessage, initialMessage];
     };
 
     if (!isOpen) return null;
@@ -331,45 +377,64 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ isOpen, onClose}) => {
                                 Remove My API Key
                             </button>
                         </div>
-
                         {userStoredKey && (
                             <div className="stored-key-info">
                                 <p>You have a stored API key {isUsingDefaultKey ? "(not currently in use)" : "(currently in use)"}
                                 </p>
                             </div>
                         )}
+                        <div className="advanced-settings">
+                            <h4>Advanced Settings</h4>
+                            <div className="token-limit-setting">
+                                <label htmlFor="token-limit">Max Response Tokens:</label>
+                                <select
+                                    id="token-limit"
+                                    value={tokenLimit}
+                                    onChange={(e) => setTokenLimit(parseInt(e.target.value, 10))}
+                                >
+                                    <option value={1000}>1000 tokens (~750 words)</option>
+                                    <option value={5000}>5000 tokens (~3,750 words)</option>
+                                    <option value={10000}>10000 tokens (~7,500 words)</option>
+                                    <option value={15000}>15000 tokens (~11,250 words)</option>
+                                    <option value={20000}>20000 tokens (~15,000 words)</option>
+                                </select>
+                            </div>
+                        </div>
+
                     </div>
                 ) : (
                     <>
                         <div className="ai-assistant-messages">
-                            {messages.map((msg) => (
-                                <div key={msg.id} className={`message ${msg.role}`}>
-                                    {msg.role === 'assistant' && (
-                                        <div className="message-actions">
-                                            <button
-                                                className="copy-message-button"
-                                                onClick={() => copyToClipboard(msg.content, msg.id)}
-                                                title="Copy entire response"
-                                            >
-                                                {copyButtonStates[msg.id] || 'Copy'}
-                                            </button>
-                                        </div>
-                                    )}
-                                    <div className="message-content">
-                                        {msg.role === 'assistant' ? (
-                                            <MarkdownRenderer content={msg.content} />
-                                        ) : (
-                                            // For user messages, keep the existing text formatting
-                                            msg.content.split('\n').map((line, i) => (
-                                                <React.Fragment key={i}>
-                                                    {line}
-                                                    {i < msg.content.split('\n').length - 1 && <br />}
-                                                </React.Fragment>
-                                            ))
+                            {messages
+                                .filter(msg => msg.role !== 'system') // Don't display system message
+                                .map((msg) => (
+                                    <div key={msg.id} className={`message ${msg.role}`}>
+                                        {msg.role === 'assistant' && (
+                                            <div className="message-actions">
+                                                <button
+                                                    className="copy-message-button"
+                                                    onClick={() => copyToClipboard(msg.content, msg.id)}
+                                                    title="Copy entire response"
+                                                >
+                                                    {copyButtonStates[msg.id] || 'Copy'}
+                                                </button>
+                                            </div>
                                         )}
+                                        <div className="message-content">
+                                            {msg.role === 'assistant' ? (
+                                                <MarkdownRenderer content={msg.content} />
+                                            ) : (
+                                                // For user messages, keep the existing text formatting
+                                                msg.content.split('\n').map((line, i) => (
+                                                    <React.Fragment key={i}>
+                                                        {line}
+                                                        {i < msg.content.split('\n').length - 1 && <br />}
+                                                    </React.Fragment>
+                                                ))
+                                            )}
+                                        </div>
                                     </div>
-                                </div>
-                            ))}
+                                ))}
                             <div ref={messagesEndRef} />
                         </div>
 

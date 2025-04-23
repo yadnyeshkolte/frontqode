@@ -1,13 +1,22 @@
 // src/ipcHandlers/groqHandlers.ts
 import { ipcMain } from 'electron';
-import GroqService from '../services/GroqService';
+import GroqService, { ChatMessage } from '../services/GroqService';
 
 const groqService = new GroqService();
 
 export const setupGroqHandlers = () => {
-    ipcMain.handle('groq-get-completion', async (_, prompt: string, maxTokens = 500) => {
+    ipcMain.handle('groq-get-completion', async (_, prompt: string, maxTokens = 50000) => {
         try {
             const completion = await groqService.getCompletion(prompt, maxTokens);
+            return { success: true, completion };
+        } catch (error) {
+            return { success: false, error: error.message };
+        }
+    });
+
+    ipcMain.handle('groq-get-chat-completion', async (_, messages: ChatMessage[], maxTokens = 50000) => {
+        try {
+            const completion = await groqService.getChatCompletion(messages, maxTokens);
             return { success: true, completion };
         } catch (error) {
             return { success: false, error: error.message };

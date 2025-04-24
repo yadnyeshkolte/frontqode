@@ -1,5 +1,5 @@
 // src/components/Documentation/DocsExplorerOverlay.tsx
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import DocsExplorer from './DocsExplorer';
 import './DocsExplorerOverlay.css';
 
@@ -22,11 +22,34 @@ const DocsExplorerOverlay: React.FC<DocsExplorerOverlayProps> = ({
                                                                      onContextMenu,
                                                                      onChangeDocsFolder
                                                                  }) => {
+    const panelRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (panelRef.current && !panelRef.current.contains(event.target as Node)) {
+                onClose();
+            }
+        };
+
+        if (isOpen) {
+            document.addEventListener('mousedown', handleClickOutside);
+        }
+
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [isOpen, onClose]);
+
     if (!isOpen) return null;
+
+    const handleFileSelect = (filePath: string) => {
+        onFileSelect(filePath);
+        onClose(); // Close the explorer after selecting a file
+    };
 
     return (
         <div className="docs-explorer-overlay">
-            <div className="docs-explorer-panel">
+            <div className="docs-explorer-panel" ref={panelRef}>
                 <div className="docs-explorer-overlay-header">
                     <h3>Documentation Files</h3>
                     <button onClick={onClose} title="Close">
@@ -36,7 +59,7 @@ const DocsExplorerOverlay: React.FC<DocsExplorerOverlayProps> = ({
                 <div className="docs-explorer-overlay-content">
                     <DocsExplorer
                         projectPath={projectPath}
-                        onFileSelect={onFileSelect}
+                        onFileSelect={handleFileSelect}
                         currentDocPath={currentDocPath}
                         onContextMenu={onContextMenu}
                         onChangeDocsFolder={onChangeDocsFolder}

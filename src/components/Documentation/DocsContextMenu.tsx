@@ -1,5 +1,5 @@
 // src/components/Documentation/DocsContextMenu.tsx
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { ContextMenu, ContextMenuItem } from '../../utils/ContextMenuUtils';
 import * as path from 'path';
 import './ModalDialog.css';
@@ -23,12 +23,29 @@ interface RenameDialogProps {
 
 const RenameDialog: React.FC<RenameDialogProps> = ({ isOpen, onClose, currentName, onConfirm }) => {
     const [name, setName] = useState(currentName);
+    const modalRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
+                onClose();
+            }
+        };
+
+        if (isOpen) {
+            document.addEventListener('mousedown', handleClickOutside);
+        }
+
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [isOpen, onClose]);
 
     if (!isOpen) return null;
 
     return (
         <div className="modal-overlay">
-            <div className="modal-content">
+            <div className="modal-content" ref={modalRef}>
                 <h3>Rename</h3>
                 <input
                     type="text"
@@ -53,11 +70,29 @@ interface DeleteDialogProps {
 }
 
 const DeleteDialog: React.FC<DeleteDialogProps> = ({ isOpen, onClose, itemName, onConfirm }) => {
+    const modalRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
+                onClose();
+            }
+        };
+
+        if (isOpen) {
+            document.addEventListener('mousedown', handleClickOutside);
+        }
+
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [isOpen, onClose]);
+
     if (!isOpen) return null;
 
     return (
         <div className="modal-overlay">
-            <div className="modal-content">
+            <div className="modal-content" ref={modalRef}>
                 <h3>Confirm Delete</h3>
                 <p>Are you sure you want to delete "{itemName}"?</p>
                 <div className="modal-actions">
@@ -78,6 +113,23 @@ interface CreateFileDialogProps {
 const CreateFileDialog: React.FC<CreateFileDialogProps> = ({ isOpen, onClose, onConfirm }) => {
     const [fileName, setFileName] = useState('newfile.md');
     const [error, setError] = useState('');
+    const modalRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
+                onClose();
+            }
+        };
+
+        if (isOpen) {
+            document.addEventListener('mousedown', handleClickOutside);
+        }
+
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [isOpen, onClose]);
 
     if (!isOpen) return null;
 
@@ -92,7 +144,7 @@ const CreateFileDialog: React.FC<CreateFileDialogProps> = ({ isOpen, onClose, on
 
     return (
         <div className="modal-overlay">
-            <div className="modal-content">
+            <div className="modal-content" ref={modalRef}>
                 <h3>Create New File</h3>
                 <input
                     type="text"
@@ -118,12 +170,29 @@ interface CreateFolderDialogProps {
 
 const CreateFolderDialog: React.FC<CreateFolderDialogProps> = ({ isOpen, onClose, onConfirm }) => {
     const [folderName, setFolderName] = useState('');
+    const modalRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
+                onClose();
+            }
+        };
+
+        if (isOpen) {
+            document.addEventListener('mousedown', handleClickOutside);
+        }
+
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [isOpen, onClose]);
 
     if (!isOpen) return null;
 
     return (
         <div className="modal-overlay">
-            <div className="modal-content">
+            <div className="modal-content" ref={modalRef}>
                 <h3>Create New Folder</h3>
                 <input
                     type="text"
@@ -152,6 +221,20 @@ const DocsContextMenu: React.FC<DocsContextMenuProps> = ({
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [createFileDialogOpen, setCreateFileDialogOpen] = useState(false);
     const [createFolderDialogOpen, setCreateFolderDialogOpen] = useState(false);
+    const menuRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+                onClose();
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [onClose]);
 
     const fileName = path.basename(filePath);
     const dirPath = path.dirname(filePath);
@@ -244,33 +327,35 @@ const DocsContextMenu: React.FC<DocsContextMenuProps> = ({
 
     return (
         <>
-            <ContextMenu position={position} onClose={onClose}>
-                {isDirectory && (
-                    <ContextMenuItem onClick={() => setCreateFileDialogOpen(true)}>
-                        <span className="material-icons" style={{ fontSize: '16px', marginRight: '5px' }}>note_add</span>
-                        New File
+            <div ref={menuRef}>
+                <ContextMenu position={position} onClose={onClose}>
+                    {isDirectory && (
+                        <ContextMenuItem onClick={() => setCreateFileDialogOpen(true)}>
+                            <span className="material-icons" style={{ fontSize: '16px', marginRight: '5px' }}>note_add</span>
+                            New File
+                        </ContextMenuItem>
+                    )}
+                    {isDirectory && (
+                        <ContextMenuItem onClick={() => setCreateFolderDialogOpen(true)}>
+                            <span className="material-icons" style={{ fontSize: '16px', marginRight: '5px' }}>create_new_folder</span>
+                            New Folder
+                        </ContextMenuItem>
+                    )}
+                    <ContextMenuItem onClick={() => setRenameDialogOpen(true)}>
+                        <span className="material-icons" style={{ fontSize: '16px', marginRight: '5px' }}>edit</span>
+                        Rename
                     </ContextMenuItem>
-                )}
-                {isDirectory && (
-                    <ContextMenuItem onClick={() => setCreateFolderDialogOpen(true)}>
-                        <span className="material-icons" style={{ fontSize: '16px', marginRight: '5px' }}>create_new_folder</span>
-                        New Folder
+                    <ContextMenuItem onClick={() => setDeleteDialogOpen(true)}>
+                        <span className="material-icons" style={{ fontSize: '16px', marginRight: '5px' }}>delete</span>
+                        Delete
                     </ContextMenuItem>
-                )}
-                <ContextMenuItem onClick={() => setRenameDialogOpen(true)}>
-                    <span className="material-icons" style={{ fontSize: '16px', marginRight: '5px' }}>edit</span>
-                    Rename
-                </ContextMenuItem>
-                <ContextMenuItem onClick={() => setDeleteDialogOpen(true)}>
-                    <span className="material-icons" style={{ fontSize: '16px', marginRight: '5px' }}>delete</span>
-                    Delete
-                </ContextMenuItem>
-                <ContextMenuItem divider />
-                <ContextMenuItem onClick={handleOpenInExplorer}>
-                    <span className="material-icons" style={{ fontSize: '16px', marginRight: '5px' }}>folder_open</span>
-                    Show in Explorer
-                </ContextMenuItem>
-            </ContextMenu>
+                    <ContextMenuItem divider />
+                    <ContextMenuItem onClick={handleOpenInExplorer}>
+                        <span className="material-icons" style={{ fontSize: '16px', marginRight: '5px' }}>folder_open</span>
+                        Show in Explorer
+                    </ContextMenuItem>
+                </ContextMenu>
+            </div>
 
             {/* Modal dialogs */}
             <RenameDialog

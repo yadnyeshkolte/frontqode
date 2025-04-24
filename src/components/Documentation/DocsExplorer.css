@@ -1,0 +1,115 @@
+/* src/components/Documentation/DocsExplorer.css */
+.docs-explorer {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+}
+
+.docs-explorer-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    border-bottom: 1px solid #3c3c3c;
+}
+
+.docs-explorer-header h4 {
+    margin: 0;
+    font-size: 14px;
+    font-weight: normal;
+    color: #ddd;
+}
+
+.refresh-button {
+    background: none;
+    border: none;
+    color: #cccccc;
+    cursor: pointer;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+}
+
+.refresh-button:hover {
+    background-color: #3c3c3c;
+}
+
+.docs-explorer-content {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding: 5px 0;
+}
+
+.docs-tree {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.docs-tree ul {
+    padding-left: 18px;
+}
+
+.docs-tree li {
+    padding: 0;
+    margin: 0;
+}
+
+.tree-item {
+    display: flex;
+    align-items: center;
+    padding: 3px 8px;
+    cursor: pointer;
+    border-radius: 4px;
+    margin: 1px 0;
+}
+
+.tree-item:hover {
+    background-color: #3c3c3c;
+}
+
+.tree-item.active {
+    background-color: #094771;
+}
+
+.tree-item .material-icons {
+    font-size: 16px;
+    margin-right: 5px;
+}
+
+.tree-item .item-name {
+    font-size: 13px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.directory-item {
+    color: #cccccc;
+}
+
+.directory-item .material-icons {
+    color: #e2c08d;
+}
+
+.file-item .material-icons {
+    color: #8bbdd9;
+}
+
+.no-docs {
+    color: #888;
+    font-style: italic;
+    font-size: 13px;
+    padding: 10px;
+}
+
+.loading {
+    color: #888;
+    font-style: italic;
+    font-size: 13px;
+    padding: 10px;
+    text-align: center;
+}

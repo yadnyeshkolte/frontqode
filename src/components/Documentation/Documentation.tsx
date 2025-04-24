@@ -4,6 +4,10 @@ import './Documentation.css';
 import AlertModal from '../AlertModal/AlertModal';
 import MarkdownRenderer from '../MarkdownRenderer/MarkdownRenderer';
 import FileContextSelector, { FileContext } from '../AIAssistant/FileContextSelector/FileContextSelector';
+import DocsExplorer from './DocsExplorer';
+import DocsContextMenu from './DocsContextMenu';
+import HoverChat from './HoverChat';
+import DocGenChatOverlay from './DocGenChatOverlay';
 import * as path from 'path';
 
 interface DocumentationProps {
@@ -29,6 +33,38 @@ const Documentation: React.FC<DocumentationProps> = ({ isOpen, onClose, projectP
     const editorRef = useRef<HTMLTextAreaElement>(null);
     const [isExpanded, setIsExpanded] = useState(false);
     const [docFiles, setDocFiles] = useState<string[]>([]);
+
+    // New state for context menu
+    const [contextMenu, setContextMenu] = useState<{
+        show: boolean;
+        x: number;
+        y: number;
+        filePath: string;
+        isDirectory: boolean;
+    }>({
+        show: false,
+        x: 0,
+        y: 0,
+        filePath: '',
+        isDirectory: false
+    });
+
+    // New state for hover chat
+    const [hoverChat, setHoverChat] = useState<{
+        show: boolean;
+        x: number;
+        y: number;
+        selectionContext: string;
+    }>({
+        show: false,
+        x: 0,
+        y: 0,
+        selectionContext: ''
+    });
+
+    // New state for doc generation overlay
+    const [showDocGenOverlay, setShowDocGenOverlay] = useState(false);
+    const [additionalDocGenContext, setAdditionalDocGenContext] = useState('');
 
     const clearSelectedFiles = () => {
         setSelectedFiles([]);
@@ -141,6 +177,11 @@ const Documentation: React.FC<DocumentationProps> = ({ isOpen, onClose, projectP
     };
 
     const generateProjectDocs = async () => {
+        // Show chat overlay to get additional context before generating docs
+        setShowDocGenOverlay(true);
+    };
+
+    const handleGenerateDocsWithContext = async (additionalContext: string) => {
         if (!projectPath) return;
 
         setIsProcessing(true);
@@ -160,6 +201,8 @@ File: ${file.path}
 ${file.content}
 \`\`\`
 `).join('\n')}
+
+${additionalContext ? `\nAdditional context from user:\n${additionalContext}` : ''}
 
 Create a well-structured markdown document that includes:
 1. Project overview
@@ -182,6 +225,8 @@ Create a well-structured markdown document that includes:
 
                 // Clear selected files after successful generation
                 clearSelectedFiles();
+                // Clear additional context
+                setAdditionalDocGenContext('');
 
                 setAlertState({
                     isOpen: true,
@@ -247,7 +292,7 @@ Create a well-structured markdown document that includes:
         // Don't change selected files when cancelled
     };
 
-    const documentSelectedCode = async () => {
+    const documentSelectedCode = async (additionalContext = '') => {
         if (!editorRef.current || !currentDocPath) return;
 
         const selection = editorRef.current.value.substring(
@@ -266,6 +311,32 @@ Create a well-structured markdown document that includes:
             return;
         }
 
+        // If no additional context provided, show the hover chat
+        if (!additionalContext) {
+            // Get cursor position for hover chat
+            const textarea = editorRef.current;
+            const cursorPosition = textarea.selectionStart;
+
+            // Calculate position based on textarea
+            const textareaRect = textarea.getBoundingClientRect();
+            // Approximate position based on character position (this is simplified)
+            const lines = textarea.value.substr(0, cursorPosition).split('\n');
+            const lineHeight = 18; // Approximate line height in pixels
+            const currentLine = lines.length;
+
+            // Position the hover chat near the cursor
+            const x = textareaRect.left + 50; // Offset from textarea left
+            const y = textareaRect.top + currentLine * lineHeight;
+
+            setHoverChat({
+                show: true,
+                x,
+                y,
+                selectionContext: selection
+            });
+            return;
+        }
+
         setIsProcessing(true);
         try {
             const prompt = `Document the following code selection in markdown format. Provide a clear explanation of what it does, parameters, return values, and usage examples if applicable:
@@ -273,6 +344,8 @@ Create a well-structured markdown document that includes:
 \`\`\`
 ${selection}
 \`\`\`
+
+${additionalContext ? `Additional context from user:\n${additionalContext}\n\n` : ''}
 
 ${selectedFiles.length > 0 ? 'Additional context from project files:' : ''}
 ${selectedFiles.map(file => `
@@ -317,6 +390,34 @@ Format the documentation properly for a markdown document.`;
         }
     };
 
+    // New method to handle hover chat context submission
+    const handleHoverChatSubmit = (context: string) => {
+        setHoverChat(prev => ({ ...prev, show: false }));
+        documentSelectedCode(context);
+    };
+
+    // New method to handle right-click in docs explorer
+    const handleDocsContextMenu = (filePath: string, isDirectory: boolean, e: React.MouseEvent) => {
+        e.preventDefault();
+        setContextMenu({
+            show: true,
+            x: e.clientX,
+            y: e.clientY,
+            filePath,
+            isDirectory
+        });
+    };
+
+    // New method to close context menu
+    const closeContextMenu = () => {
+        setContextMenu(prev => ({ ...prev, show: false }));
+    };
+
+    // New method to reload docs after context menu actions
+    const handleDocsReload = () => {
+        loadDocFiles();
+    };
+
     const closeAlert = () => {
         setAlertState(prev => ({ ...prev, isOpen: false }));
     };
@@ -355,24 +456,14 @@ Format the documentation properly for a markdown document.`;
                             )}
                         </button>
                     </div>
-                    <div className="doc-files-list">
-                        <h4>Documentation Files</h4>
-                        {docFiles.length === 0 ? (
-                            <p className="no-docs">No documentation files</p>
-                        ) : (
-                            <ul>
-                                {docFiles.map((file, index) => (
-                                    <li
-                                        key={index}
-                                        className={currentDocPath && currentDocPath.endsWith(file) ? 'active' : ''}
-                                        onClick={() => openDocFile(path.join(projectPath, 'docs', file))}
-                                    >
-                                        {file}
-                                    </li>
-                                ))}
-                            </ul>
-                        )}
-                    </div>
+
+                    {/* Replace the old docs-files-list with the new DocsExplorer component */}
+                    <DocsExplorer
+                        projectPath={projectPath}
+                        onFileSelect={openDocFile}
+                        currentDocPath={currentDocPath}
+                        onContextMenu={handleDocsContextMenu}
+                    />
                 </div>
 
                 <div className="documentation-content">
@@ -392,7 +483,7 @@ Format the documentation properly for a markdown document.`;
                         {activeTab === 'editor' && (
                             <button
                                 className="doc-code-button"
-                                onClick={documentSelectedCode}
+                                onClick={() => documentSelectedCode()}
                                 title="Document Selected Code (Alt+D)"
                                 disabled={isProcessing}
                             >
@@ -429,6 +520,35 @@ Format the documentation properly for a markdown document.`;
                         </div>
                     )}
                 </div>
+
+                {/* Context menu for docs explorer */}
+                {contextMenu.show && (
+                    <DocsContextMenu
+                        position={{ x: contextMenu.x, y: contextMenu.y }}
+                        onClose={closeContextMenu}
+                        filePath={contextMenu.filePath}
+                        isDirectory={contextMenu.isDirectory}
+                        onReload={handleDocsReload}
+                        projectPath={projectPath}
+                    />
+                )}
+
+                {/* Hover chat for documenting code */}
+                {hoverChat.show && (
+                    <HoverChat
+                        position={{ x: hoverChat.x, y: hoverChat.y }}
+                        onClose={() => setHoverChat(prev => ({ ...prev, show: false }))}
+                        onAddContext={handleHoverChatSubmit}
+                    />
+                )}
+
+                {/* Doc generation chat overlay */}
+                <DocGenChatOverlay
+                    isOpen={showDocGenOverlay}
+                    onClose={() => setShowDocGenOverlay(false)}
+                    onSubmit={handleGenerateDocsWithContext}
+                    isProcessing={isProcessing}
+                />
 
                 <FileContextSelector
                     isOpen={showFileSelector}

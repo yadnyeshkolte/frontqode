@@ -1,0 +1,141 @@
+/* src/components/Documentation/DocGenChatOverlay.css */
+.doc-gen-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.doc-gen-panel {
+    width: 600px;
+    max-width: 90%;
+    background-color: #252526;
+    border-radius: 6px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+    display: flex;
+    flex-direction: column;
+    max-height: 80vh;
+}
+
+.doc-gen-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    border-bottom: 1px solid #3c3c3c;
+}
+
+.doc-gen-header h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: normal;
+    color: #eee;
+}
+
+.doc-gen-header button {
+    background: none;
+    border: none;
+    color: #cccccc;
+    cursor: pointer;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+}
+
+.doc-gen-header button:hover:not(:disabled) {
+    background-color: #3c3c3c;
+}
+
+.doc-gen-content {
+    padding: 16px;
+    overflow-y: auto;
+}
+
+.doc-gen-content p {
+    color: #cccccc;
+    margin-top: 0;
+    margin-bottom: 16px;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.doc-gen-content textarea {
+    width: 100%;
+    padding: 12px;
+    background-color: #1e1e1e;
+    border: 1px solid #3c3c3c;
+    border-radius: 4px;
+    color: #eee;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-size: 14px;
+    resize: vertical;
+}
+
+.doc-gen-content textarea:focus {
+    border-color: #0078d7;
+    outline: none;
+}
+
+.doc-gen-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 16px;
+    gap: 10px;
+}
+
+.cancel-button {
+    padding: 8px 16px;
+    background-color: transparent;
+    color: #cccccc;
+    border: 1px solid #3c3c3c;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.cancel-button:hover:not(:disabled) {
+    background-color: #3c3c3c;
+}
+
+.generate-button {
+    padding: 8px 16px;
+    background-color: #0078d7;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.generate-button:hover:not(:disabled) {
+    background-color: #0086f0;
+}
+
+.generate-button:disabled, .cancel-button:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.rotating {
+    animation: rotating 2s linear infinite;
+}
+
+@keyframes rotating {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}

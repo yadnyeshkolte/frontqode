@@ -1,0 +1,97 @@
+/* src/components/Documentation/HoverChat.css */
+.hover-chat-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 2000;
+    background-color: rgba(0, 0, 0, 0.1);
+}
+
+.hover-chat-container {
+    position: absolute;
+    width: 300px;
+    background-color: #252526;
+    border: 1px solid #3c3c3c;
+    border-radius: 6px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    z-index: 2001;
+}
+
+.hover-chat-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    border-bottom: 1px solid #3c3c3c;
+}
+
+.hover-chat-header h4 {
+    margin: 0;
+    font-size: 14px;
+    font-weight: normal;
+    color: #eee;
+}
+
+.close-button {
+    background: none;
+    border: none;
+    color: #cccccc;
+    cursor: pointer;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2px;
+}
+
+.close-button:hover {
+    background-color: #3c3c3c;
+}
+
+.hover-chat-container form {
+    padding: 12px;
+}
+
+.hover-chat-container textarea {
+    width: 100%;
+    padding: 8px;
+    background-color: #1e1e1e;
+    border: 1px solid #3c3c3c;
+    border-radius: 4px;
+    color: #eee;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-size: 13px;
+    resize: vertical;
+}
+
+.hover-chat-container textarea:focus {
+    border-color: #0078d7;
+    outline: none;
+}
+
+.hover-chat-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 10px;
+}
+
+.hover-chat-actions button {
+    padding: 6px 12px;
+    background-color: #0078d7;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 13px;
+}
+
+.hover-chat-actions button:hover {
+    background-color: #0086f0;
+}
+
+.hover-chat-actions button:disabled {
+    background-color: #505050;
+    cursor: not-allowed;
+}

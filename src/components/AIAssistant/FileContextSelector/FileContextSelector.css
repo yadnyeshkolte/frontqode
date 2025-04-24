@@ -1,4 +1,4 @@
-/* src/components/FileContextSelector/FileContextSelector.css */
+
 .file-selector {
     width: 100%;
     height: 100%;
@@ -62,7 +62,18 @@
     color: #aaa;
 }
 
-.file-item.selected .material-icons {
+.file-item .expand-icon {
+    color: #ffc107;
+    cursor: pointer;
+}
+
+.file-item .checkbox-icon {
+    margin-left: auto;
+    margin-right: 0;
+    color: #aaa;
+}
+
+.file-item.selected .checkbox-icon {
     color: #58a6ff;
 }
 
@@ -71,6 +82,7 @@
     overflow: hidden;
     text-overflow: ellipsis;
     color: #ddd;
+    flex: 1;
 }
 
 .no-files {
@@ -115,7 +127,7 @@
 .file-selector-buttons button:first-child {
     background-color: #3b3b3b;
     color: #fff;
-    border: 1px solid #555;
+    border: none;
 }
 
 .file-selector-buttons button.confirm-button {
@@ -126,6 +138,21 @@
 
 .file-selector-buttons button.confirm-button:hover {
     background-color: #1177bb;
+}
+
+.file-selector-buttons button.clear-button {
+    background-color: #6a1b19;
+    color: white;
+    border: none;
+}
+
+.file-selector-buttons button.clear-button:hover {
+    background-color: #8a2b29;
+}
+
+.file-selector-buttons button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
 }
 
 /* Styling for file badge in AIAssistant.tsx */
@@ -165,4 +192,9 @@
 .input-actions {
     display: flex;
     align-items: center;
+}
+
+.p-color{
+    color: #ffc107;
+    margin-bottom: 1rem;
 }

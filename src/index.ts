@@ -7,6 +7,7 @@ import { setupTerminalHandlers } from './ipcHandlers/terminalHandlers';
 import { setupLanguageServerHandlers } from './ipcHandlers/languageServerHandlers';
 import { setupGroqHandlers } from './ipcHandlers/groqHandlers';
 import { setupSystemHandlers } from './ipcHandlers/systemHandlers';
+import { setupSettingsHandlers } from './ipcHandlers/setupSettingsHandlers';
 import { setupApplicationMenu } from './menu';
 
 
@@ -78,6 +79,7 @@ setupTerminalHandlers();
 setupLanguageServerHandlers();
 setupGroqHandlers();
 setupSystemHandlers();
+setupSettingsHandlers()
 
 
 // This method will be called when Electron has finished

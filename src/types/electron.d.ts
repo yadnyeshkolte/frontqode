@@ -16,6 +16,17 @@ interface ElectronAPI {
     writeFile: (filePath: string, content: string) => Promise<{ success: boolean; error?: string }>;
     getProjectsDir: () => Promise<{ success: boolean; projectsDir?: string; error?: string }>;
 
+    //Documentation operations
+
+    selectDirectory: (options: {
+        title?: string;
+        defaultPath?: string;
+        properties?: string[];
+    }) => Promise<{ success: boolean; path?: string; error?: string }>;
+
+    saveProjectSetting: (projectPath: string, settingKey: string, settingValue: any) =>
+        Promise<{ success: boolean; error?: string }>;
+
     // Git operations
     isGitInstalled: () => Promise<{ success: boolean; isInstalled?: boolean; error?: string }>;
     cloneRepository: (repoUrl: string, projectName?: string) =>
@@ -65,7 +76,7 @@ interface ElectronAPI {
         Promise<{ success: boolean; error?: string }>;
     groqGetCompletion: (prompt: string, maxTokens?: number, model?: string) =>
         Promise<{ success: boolean; completion?: string; error?: string }>;
-    groqGetChatCompletion: (messages: ({ role: string; content: string } | {
+    groqGetChatCompletion: (messages: ({
         role: string;
         content: string
     })[], maxTokens?: number, model?: string) =>

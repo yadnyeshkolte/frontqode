@@ -222,6 +222,36 @@
     gap: 5px;
 }
 
+.documentation-tabs button {
+    /* Existing styles... */
+    max-width: 200px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.docs-explorer-actions {
+    display: flex;
+    gap: 5px;
+}
+
+.folder-button {
+    background: none;
+    border: none;
+    color: #cccccc;
+    cursor: pointer;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+}
+
+.folder-button:hover {
+    background-color: #3c3c3c;
+}
+
+
 @keyframes rotating {
     from {
         transform: rotate(0deg);

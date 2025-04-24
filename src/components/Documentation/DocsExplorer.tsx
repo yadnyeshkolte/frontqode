@@ -8,6 +8,7 @@ interface DocsExplorerProps {
     onFileSelect: (filePath: string) => void;
     currentDocPath: string | null;
     onContextMenu?: (filePath: string, isDirectory: boolean, e: React.MouseEvent) => void;
+    onChangeDocsFolder?: () => void; // New prop
 }
 
 interface FileItem {
@@ -18,7 +19,7 @@ interface FileItem {
     isExpanded?: boolean;
 }
 
-const DocsExplorer: React.FC<DocsExplorerProps> = ({ projectPath, onFileSelect, currentDocPath, onContextMenu }) => {
+const DocsExplorer: React.FC<DocsExplorerProps> = ({ projectPath, onFileSelect, currentDocPath, onContextMenu, onChangeDocsFolder }) => {
     const [structure, setStructure] = useState<FileItem[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
 
@@ -136,6 +137,9 @@ const DocsExplorer: React.FC<DocsExplorerProps> = ({ projectPath, onFileSelect, 
                 <h4>Documentation Files</h4>
                 <button className="refresh-button" onClick={loadDocsStructure} title="Refresh">
                     <span className="material-icons">refresh</span>
+                </button>
+                <button className="folder-button" onClick={onChangeDocsFolder} title="Change Docs Folder">
+                    <span className="material-icons">folder_open</span>
                 </button>
             </div>
             <div className="docs-explorer-content">

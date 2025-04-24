@@ -77,6 +77,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
     scanDirectory: (dirPath: string, ignoreDirectories: string[] = []) =>
         ipcRenderer.invoke('scan-directory', dirPath, ignoreDirectories),
 
+    //Documentation operations
+    selectDirectory: (options: any) => ipcRenderer.invoke('select-directory', options),
+    saveProjectSetting: (projectPath: string, settingKey: string, settingValue: any) =>
+        ipcRenderer.invoke('save-project-setting', projectPath, settingKey, settingValue),
+
     restartApplication: () => ipcRenderer.invoke('restart-application'),
 
     // Set up menu event listeners

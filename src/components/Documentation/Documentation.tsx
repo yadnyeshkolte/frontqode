@@ -156,6 +156,29 @@ const Documentation: React.FC<DocumentationProps> = ({ isOpen, onClose, projectP
         setShowDocGenOverlay(true);
     };
 
+    const selectCustomDocsFolder = async () => {
+        try {
+            const result = await window.electronAPI.selectDirectory({
+                title: 'Select Documentation Folder',
+                defaultPath: projectPath
+            });
+
+            if (result.success && result.path) {
+                // Save this preference (you might want to store this in a settings file)
+                const customDocsPath = result.path;
+
+                // Update state or configuration to use this custom path
+                // This is just an example - you'll need to implement storage
+                await window.electronAPI.saveProjectSetting(projectPath, 'docsFolder', customDocsPath);
+
+                // Reload the docs with the new path
+                loadDocFiles();
+            }
+        } catch (error) {
+            console.error('Error selecting docs folder:', error);
+        }
+    };
+
     const handleGenerateDocsWithContext = async (additionalContext: string) => {
         if (!projectPath) return;
 
@@ -478,6 +501,7 @@ Format the documentation properly for a markdown document.`;
                         onFileSelect={openDocFile}
                         currentDocPath={currentDocPath}
                         onContextMenu={handleDocsContextMenu}
+                        onChangeDocsFolder={selectCustomDocsFolder}
                     />
                 </div>
 
@@ -487,7 +511,7 @@ Format the documentation properly for a markdown document.`;
                             className={activeTab === 'editor' ? 'active' : ''}
                             onClick={() => setActiveTab('editor')}
                         >
-                            Editor
+                            Editor{currentDocPath && `: ${path.basename(currentDocPath)}`}
                         </button>
                         <button
                             className={activeTab === 'preview' ? 'active' : ''}

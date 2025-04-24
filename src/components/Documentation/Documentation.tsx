@@ -71,7 +71,6 @@ const Documentation: React.FC<DocumentationProps> = ({ isOpen, onClose, projectP
     const clearSelectedFiles = () => {
         setSelectedFiles([]);
     };
-
     useEffect(() => {
         if (projectPath) {
             // Check if docs directory exists, if not create it

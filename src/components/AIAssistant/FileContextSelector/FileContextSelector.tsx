@@ -292,6 +292,7 @@ const FileContextSelector: React.FC<FileContextSelectorProps> = ({
     // Clear all selected files
     const clearSelectedFiles = () => {
         setSelectedFiles([]);
+        onConfirmSelection([]); // This is the key change - notify parent component
     };
 
     const handleConfirm = () => {

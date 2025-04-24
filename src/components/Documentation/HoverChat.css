@@ -55,7 +55,7 @@
 }
 
 .hover-chat-container textarea {
-    width: 100%;
+    width: 90%;
     padding: 8px;
     background-color: #1e1e1e;
     border: 1px solid #3c3c3c;
@@ -64,6 +64,8 @@
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     font-size: 13px;
     resize: vertical;
+    scrollbar-width: thin; /* For Firefox */
+    scrollbar-color: #555555 #252526; /* For Firefox */
 }
 
 .hover-chat-container textarea:focus {

@@ -4,6 +4,7 @@ import './AIAssistant.css';
 import AlertModal from '../AlertModal/AlertModal';
 import SystemService from '../../services/SystemService';
 import MarkdownRenderer from '../MarkdownRenderer/MarkdownRenderer';
+import FileContextSelector, { FileContext } from './FileContextSelector/FileContextSelector';
 
 interface AIAssistantProps {
     isOpen: boolean;
@@ -59,7 +60,7 @@ let persistentMessages: Message[] = [
     }
 ];
 
-const AIAssistant: React.FC<AIAssistantProps> = ({ isOpen, onClose}) => {
+const AIAssistant: React.FC<AIAssistantProps> = ({ isOpen, onClose, projectPath }) => {
     const [messages, setMessages] = useState<Message[]>(persistentMessages);
     const [input, setInput] = useState('');
     const [isProcessing, setIsProcessing] = useState(false);
@@ -72,6 +73,10 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ isOpen, onClose}) => {
     const [copyButtonStates, setCopyButtonStates] = useState<{[key: string]: string}>({});
     const [tokenLimit, setTokenLimit] = useState(4000); // Increased default token limit
     const [selectedModel, setSelectedModel] = useState('deepseek-r1-distill-llama-70b');
+
+    // New states for file context feature - reduced as per instructions
+    const [showFileSelector, setShowFileSelector] = useState(false);
+    const [selectedFiles, setSelectedFiles] = useState<FileContext[]>([]);
 
     // Add alert state
     const [alertState, setAlertState] = useState({
@@ -180,6 +185,21 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ isOpen, onClose}) => {
         setIsProcessing(true);
 
         const userMessageId = generateId();
+
+        // Create the user message, possibly with file content
+        let enhancedUserMessage = userMessage;
+
+        // If files are selected, append their content to the message
+        if (selectedFiles.length > 0) {
+            enhancedUserMessage += "\n\nHere are relevant files from my project:\n\n";
+
+            for (const file of selectedFiles) {
+                const fileName = file.path.split('/').pop() || file.path;
+                enhancedUserMessage += `File: ${fileName}\n\`\`\`\n${file.content}\n\`\`\`\n\n`;
+            }
+        }
+
+        // Add the enhanced message to the chat
         setMessages(prev => [...prev, { role: 'user', content: userMessage, id: userMessageId }]);
 
         try {
@@ -189,8 +209,8 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ isOpen, onClose}) => {
                 .filter(msg => msg.role !== 'system') // Skip system message for display
                 .map(msg => ({ role: msg.role, content: msg.content }));
 
-            // Add the new user message
-            chatMessages.push({ role: 'user', content: userMessage });
+            // Add the new user message with enhanced content
+            chatMessages.push({ role: 'user', content: enhancedUserMessage });
 
             // Add system message at the beginning for context
             chatMessages.unshift({
@@ -215,6 +235,9 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ isOpen, onClose}) => {
                     content: cleanedResponse,
                     id: assistantMessageId
                 }]);
+
+                // Clear selected files after sending the message
+                setSelectedFiles([]);
             } else {
                 const errorMessageId = generateId();
                 setMessages(prev => [...prev, {
@@ -235,6 +258,25 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ isOpen, onClose}) => {
         }
     };
 
+    // Updated function as per instructions
+    const handleOpenFileSelector = () => {
+        if (projectPath) {
+            setShowFileSelector(true);
+        } else {
+            setAlertState({
+                isOpen: true,
+                title: 'No Project Open',
+                message: 'Please open a project first to select files for context.',
+                type: 'warning',
+                onConfirm: null
+            });
+        }
+    };
+
+    // New function to handle file selection confirmation
+    const handleFileSelectionConfirm = (files: FileContext[]) => {
+        setSelectedFiles(files);
+    };
 
     const handleSaveApiKey = async () => {
         if (!apiKeyInput.trim()) return;
@@ -448,67 +490,91 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ isOpen, onClose}) => {
                                 </div>
                             </div>
                         </div>
-
                     </div>
                 ) : (
                     <>
-                        <div className="ai-assistant-messages">
-                            {messages
-                                .filter(msg => msg.role !== 'system') // Don't display system message
-                                .map((msg) => (
-                                    <div key={msg.id} className={`message ${msg.role}`}>
-                                        {msg.role === 'assistant' && (
-                                            <div className="message-actions">
-                                                <button
-                                                    className="copy-message-button"
-                                                    onClick={() => copyToClipboard(msg.content, msg.id)}
-                                                    title="Copy entire response"
-                                                >
-                                                    {copyButtonStates[msg.id] || 'Copy'}
-                                                </button>
-                                            </div>
-                                        )}
-                                        <div className="message-content">
-                                            {msg.role === 'assistant' ? (
-                                                <MarkdownRenderer content={msg.content} />
-                                            ) : (
-                                                // For user messages, keep the existing text formatting
-                                                msg.content.split('\n').map((line, i) => (
-                                                    <React.Fragment key={i}>
-                                                        {line}
-                                                        {i < msg.content.split('\n').length - 1 && <br />}
-                                                    </React.Fragment>
-                                                ))
-                                            )}
-                                        </div>
-                                    </div>
-                                ))}
-                            <div ref={messagesEndRef} />
-                        </div>
+                        <FileContextSelector
+                            isOpen={showFileSelector}
+                            projectPath={projectPath}
+                            onClose={() => setShowFileSelector(false)}
+                            onConfirmSelection={handleFileSelectionConfirm}
+                            initialSelectedFiles={selectedFiles}
+                        />
 
-                        <form onSubmit={handleSubmit} className="ai-assistant-input">
-                            <textarea
-                                value={input}
-                                onChange={(e) => setInput(e.target.value)}
-                                placeholder="Ask me anything about coding..."
-                                onKeyDown={(e) => {
-                                    if (e.key === 'Enter' && !e.shiftKey) {
-                                        e.preventDefault();
-                                        handleSubmit(e);
-                                    }
-                                }}
-                                disabled={isProcessing || !apiKey}
-                            />
-                            <button
-                                type="submit"
-                                disabled={isProcessing || !apiKey || !input.trim()}
-                            >
-                                {isProcessing ?
-                                    <span className="material-icons rotating">refresh</span> :
-                                    <span className="material-icons">send</span>
-                                }
-                            </button>
-                        </form>
+                        {!showFileSelector && (
+                            <>
+                                <div className="ai-assistant-messages">
+                                    {messages
+                                        .filter(msg => msg.role !== 'system') // Don't display system message
+                                        .map((msg) => (
+                                            <div key={msg.id} className={`message ${msg.role}`}>
+                                                {msg.role === 'assistant' && (
+                                                    <div className="message-actions">
+                                                        <button
+                                                            className="copy-message-button"
+                                                            onClick={() => copyToClipboard(msg.content, msg.id)}
+                                                            title="Copy entire response"
+                                                        >
+                                                            {copyButtonStates[msg.id] || 'Copy'}
+                                                        </button>
+                                                    </div>
+                                                )}
+                                                <div className="message-content">
+                                                    {msg.role === 'assistant' ? (
+                                                        <MarkdownRenderer content={msg.content} />
+                                                    ) : (
+                                                        // For user messages, keep the existing text formatting
+                                                        msg.content.split('\n').map((line, i) => (
+                                                            <React.Fragment key={i}>
+                                                                {line}
+                                                                {i < msg.content.split('\n').length - 1 && <br />}
+                                                            </React.Fragment>
+                                                        ))
+                                                    )}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    <div ref={messagesEndRef} />
+                                </div>
+
+                                <form onSubmit={handleSubmit} className="ai-assistant-input">
+                                    <div className="input-actions">
+                                        <button
+                                            type="button"
+                                            className="file-context-button"
+                                            onClick={handleOpenFileSelector}
+                                            title="Add files as context"
+                                        >
+                                            <span className="material-icons">attach_file</span>
+                                            {selectedFiles.length > 0 && (
+                                                <span className="files-badge">{selectedFiles.length}</span>
+                                            )}
+                                        </button>
+                                    </div>
+                                    <textarea
+                                        value={input}
+                                        onChange={(e) => setInput(e.target.value)}
+                                        placeholder="Ask me anything about coding..."
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter' && !e.shiftKey) {
+                                                e.preventDefault();
+                                                handleSubmit(e);
+                                            }
+                                        }}
+                                        disabled={isProcessing || !apiKey}
+                                    />
+                                    <button
+                                        type="submit"
+                                        disabled={isProcessing || !apiKey || !input.trim()}
+                                    >
+                                        {isProcessing ?
+                                            <span className="material-icons rotating">refresh</span> :
+                                            <span className="material-icons">send</span>
+                                        }
+                                    </button>
+                                </form>
+                            </>
+                        )}
                     </>
                 )}
 

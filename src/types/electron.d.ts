@@ -65,7 +65,10 @@ interface ElectronAPI {
         Promise<{ success: boolean; error?: string }>;
     groqGetCompletion: (prompt: string, maxTokens?: number, model?: string) =>
         Promise<{ success: boolean; completion?: string; error?: string }>;
-    groqGetChatCompletion: (messages: { role: 'user' | 'assistant' | 'system'; content: string }[], maxTokens?: number, model?: string) =>
+    groqGetChatCompletion: (messages: ({ role: string; content: string } | {
+        role: string;
+        content: string
+    })[], maxTokens?: number, model?: string) =>
         Promise<{ success: boolean; completion?: string; error?: string }>;
 
     // Menu event listeners
@@ -119,6 +122,12 @@ interface ElectronAPI {
         servers?: never[]; // You might want to define a more specific type here
         error?: string
     }>;
+
+    checkIfDirectoryExists: (dirPath: string) => Promise<{ exists: boolean; error?: string }>;
+    listFilesInDirectory: (dirPath: string) => Promise<{ success: boolean; files?: string[]; error?: string }>;
+    scanDirectory: (dirPath: string, ignoreDirectories?: string[]) =>
+        Promise<{ success: boolean; files?: string[]; error?: string }>;
+
 
     restartApplication: () => Promise<{ success: boolean; error?: string }>;
     async

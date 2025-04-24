@@ -71,6 +71,12 @@ contextBridge.exposeInMainWorld('electronAPI', {
     groqGetChatCompletion: (messages: any[], maxTokens?: number, model?: string) =>
         ipcRenderer.invoke('groq-get-chat-completion', messages, maxTokens, model),
 
+    // Add these to the electronAPI object in preload.ts
+    checkIfDirectoryExists: (dirPath: string) => ipcRenderer.invoke('check-if-directory-exists', dirPath),
+    listFilesInDirectory: (dirPath: string) => ipcRenderer.invoke('list-files-in-directory', dirPath),
+    scanDirectory: (dirPath: string, ignoreDirectories: string[] = []) =>
+        ipcRenderer.invoke('scan-directory', dirPath, ignoreDirectories),
+
     restartApplication: () => ipcRenderer.invoke('restart-application'),
 
     // Set up menu event listeners

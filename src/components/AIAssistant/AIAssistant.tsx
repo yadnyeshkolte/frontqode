@@ -219,11 +219,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ isOpen, onClose, projectPath 
             });
 
             // Make API request with the full conversation history and selected model
-            const result = await window.electronAPI.groqGetChatCompletion(
-                chatMessages,
-                tokenLimit,
-                selectedModel
-            );
+            const result = await window.electronAPI.groqGetChatCompletion(chatMessages, tokenLimit, selectedModel);
 
             if (result.success && result.completion) {
                 // Clean up any internal tags in the response

@@ -1,0 +1,236 @@
+/* src/components/Documentation/Documentation.css */
+.documentation-overlay {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 40%;
+    background-color: rgba(0, 0, 0, 0.8);
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    transition: width 0.3s ease;
+}
+
+.documentation-overlay.expanded {
+    width: 70%;
+}
+
+.documentation-panel {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background-color: #1e1e1e;
+    color: #eee;
+    box-shadow: -2px 0 10px rgba(0, 0, 0, 0.5);
+}
+
+.documentation-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 15px;
+    background-color: #252526;
+    border-bottom: 1px solid #3c3c3c;
+}
+
+.documentation-header h3 {
+    margin: 0;
+    font-size: 16px;
+}
+
+.documentation-actions {
+    display: flex;
+    gap: 5px;
+}
+
+.documentation-actions button {
+    background: none;
+    border: none;
+    color: #cccccc;
+    cursor: pointer;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+}
+
+.documentation-actions button:hover {
+    background-color: #3c3c3c;
+}
+
+.documentation-content {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    overflow: hidden;
+}
+
+.documentation-tabs {
+    display: flex;
+    background-color: #252526;
+    border-bottom: 1px solid #3c3c3c;
+}
+
+.documentation-tabs button {
+    background: none;
+    border: none;
+    color: #cccccc;
+    padding: 8px 16px;
+    cursor: pointer;
+    font-size: 14px;
+    border-bottom: 2px solid transparent;
+}
+
+.documentation-tabs button.active {
+    border-bottom: 2px solid #0078d7;
+    color: white;
+}
+
+.documentation-tabs button:hover:not(.active) {
+    background-color: #3c3c3c;
+}
+
+.documentation-editor {
+    flex-grow: 1;
+    background-color: #1e1e1e;
+    color: #eee;
+    font-family: Consolas, 'Courier New', monospace;
+    font-size: 14px;
+    padding: 15px;
+    border: none;
+    resize: none;
+    outline: none;
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+}
+
+.documentation-preview {
+    flex-grow: 1;
+    padding: 15px;
+    overflow-y: auto;
+    background-color: #1e1e1e;
+}
+
+.documentation-sidebar {
+    display: flex;
+    flex-direction: column;
+    width: 200px;
+    border-right: 1px solid #3c3c3c;
+    background-color: #252526;
+    overflow-y: auto;
+}
+
+.doc-actions {
+    display: flex;
+    justify-content: center;
+    gap: 5px;
+    padding: 10px;
+    border-bottom: 1px solid #3c3c3c;
+}
+
+.doc-actions button {
+    background: none;
+    border: none;
+    color: #cccccc;
+    cursor: pointer;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+    position: relative;
+}
+
+.doc-actions button:hover {
+    background-color: #3c3c3c;
+}
+
+.doc-actions button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.doc-files-list {
+    padding: 10px;
+}
+
+.doc-files-list h4 {
+    margin: 0 0 10px 0;
+    font-size: 14px;
+    font-weight: normal;
+    color: #ddd;
+}
+
+.doc-files-list ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.doc-files-list li {
+    padding: 5px 10px;
+    cursor: pointer;
+    border-radius: 4px;
+    font-size: 13px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.doc-files-list li:hover {
+    background-color: #3c3c3c;
+}
+
+.doc-files-list li.active {
+    background-color: #094771;
+}
+
+.no-docs {
+    color: #888;
+    font-style: italic;
+    font-size: 13px;
+}
+
+.files-badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background-color: #0078d7;
+    color: white;
+    border-radius: 50%;
+    width: 16px;
+    height: 16px;
+    font-size: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.doc-code-button {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.save-doc-button {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+@keyframes rotating {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.rotating {
+    animation: rotating 2s linear infinite;
+}

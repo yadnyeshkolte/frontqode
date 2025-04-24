@@ -8,8 +8,7 @@ import MonacoEditor from '../Editor/MonacoEditor';
 import LSPManager from '../../managers/LSPManager';
 import FileOperationsService from '../../services/FileOperationsService';
 import AIAssistant from '../AIAssistant/AIAssistant';
-
-
+import Documentation from '../Documentation/Documentation';
 
 interface AppProps {
     projectPath: string;
@@ -27,6 +26,7 @@ const App: React.FC<AppProps> = ({ projectPath }) => {
     const [editorKey] = useState<number>(0); // Add a key to force re-render of editor
     const fileOpsService = useRef(new FileOperationsService()).current;
     const [isAIAssistantOpen, setIsAIAssistantOpen] = useState<boolean>(false);
+    const [isDocumentationOpen, setIsDocumentationOpen] = useState<boolean>(false);
 
     // Load project data when the project path changes
     useEffect(() => {
@@ -256,13 +256,22 @@ const App: React.FC<AppProps> = ({ projectPath }) => {
             <div className="app-header">
                 <h1>Front Qode IDE - {projectName}</h1>
                 <div className="app-header-actions">
-                    <button
-                        className="ai-assistant-button"
-                        onClick={() => setIsAIAssistantOpen(!isAIAssistantOpen)}
-                        title="AI Assistant"
-                    >
-                        <span className="material-icons">smart_toy</span>
-                    </button>
+                    <div className="app-header-actions">
+                        <button
+                            className="ai-assistant-button"
+                            onClick={() => setIsAIAssistantOpen(!isAIAssistantOpen)}
+                            title="AI Assistant"
+                        >
+                            <span className="material-icons">smart_toy</span>
+                        </button>
+                        <button
+                            className="documentation-button"
+                            onClick={() => setIsDocumentationOpen(!isDocumentationOpen)}
+                            title="Documentation"
+                        >
+                            <span className="material-icons">description</span>
+                        </button>
+                    </div>
                 </div>
             </div>
             <div className={`app-content ${isTerminalExpanded ? 'with-terminal' : ''}`}>
@@ -339,6 +348,13 @@ const App: React.FC<AppProps> = ({ projectPath }) => {
                 <AIAssistant
                     isOpen={isAIAssistantOpen}
                     onClose={() => setIsAIAssistantOpen(false)}
+                    projectPath={projectPath}
+                />
+            )}
+            {isDocumentationOpen && (
+                <Documentation
+                    isOpen={isDocumentationOpen}
+                    onClose={() => setIsDocumentationOpen(false)}
                     projectPath={projectPath}
                 />
             )}

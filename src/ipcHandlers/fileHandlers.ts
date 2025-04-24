@@ -1,5 +1,7 @@
 import { ipcMain, dialog, shell } from 'electron';
 import FileSystemService from '../services/FileSystemService';
+import * as fs from "node:fs";
+import * as path from "node:path";
 
 const fileSystemService = new FileSystemService();
 
@@ -123,6 +125,63 @@ export const setupFileHandlers = () => {
             };
         } catch (error) {
             return { success: false, error: error.message };
+        }
+    });
+
+    ipcMain.handle('check-if-directory-exists', async (_, dirPath: string) => {
+        try {
+            const exists = fs.existsSync(dirPath) && fs.statSync(dirPath).isDirectory();
+            return { exists };
+        } catch (error) {
+            return { exists: false, error: error.message };
+        }
+    });
+
+
+// List files in a directory
+    ipcMain.handle('list-files-in-directory', async (_, dirPath: string) => {
+        try {
+            if (!fs.existsSync(dirPath)) {
+                return { success: false, error: 'Directory does not exist', files: [] };
+            }
+
+            const files = fs.readdirSync(dirPath);
+            return { success: true, files };
+        } catch (error) {
+            return { success: false, error: error.message, files: [] };
+        }
+    });
+
+// Scan a directory recursively
+    ipcMain.handle('scan-directory', async (_, dirPath: string, ignoreDirectories: string[] = []) => {
+        try {
+            const files: string[] = [];
+
+            // eslint-disable-next-line no-inner-declarations
+            function scanDir(currentPath: string, relativePath = '') {
+                const entries = fs.readdirSync(currentPath);
+
+                for (const entry of entries) {
+                    const entryPath = path.join(currentPath, entry);
+                    const entryRelativePath = path.join(relativePath, entry);
+
+                    if (fs.statSync(entryPath).isDirectory()) {
+                        // Skip directories in the ignore list
+                        if (ignoreDirectories.includes(entry)) {
+                            continue;
+                        }
+
+                        scanDir(entryPath, entryRelativePath);
+                    } else {
+                        files.push(entryRelativePath);
+                    }
+                }
+            }
+
+            scanDir(dirPath);
+            return { success: true, files };
+        } catch (error) {
+            return { success: false, error: error.message, files: [] };
         }
     });
 };

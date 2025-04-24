@@ -145,6 +145,25 @@ const MonacoEditor: React.FC<MonacoEditorProps> = ({
                 onSave();
             });
 
+            // Add Alt+D command for documenting selected code
+            monacoEditorRef.current.addCommand(
+                monaco.KeyMod.Alt | monaco.KeyCode.KeyD,
+                () => {
+                    // Get the selected text
+                    const selection = monacoEditorRef.current?.getModel()?.getValueInRange(
+                        monacoEditorRef.current.getSelection()
+                    );
+
+                    if (selection) {
+                        // Trigger event for documenting selected code
+                        const event = new CustomEvent('document-selected-code', {
+                            detail: { code: selection, language: monacoEditorRef.current?.getModel()?.getLanguageId() }
+                        });
+                        window.dispatchEvent(event);
+                    }
+                }
+            );
+
             // Try to initialize LSP for supported languages
             if (['typescript', 'javascript', 'html', 'css', 'json'].includes(language)) {
                 initLanguageServer(language, uri).then(() => {

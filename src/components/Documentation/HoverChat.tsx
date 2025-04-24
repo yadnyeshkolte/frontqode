@@ -13,15 +13,29 @@ const HoverChat: React.FC<HoverChatProps> = ({ position, onClose, onAddContext }
     const containerRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLTextAreaElement>(null);
 
+    // Use state to track adjusted position
+    const [adjustedPosition, setAdjustedPosition] = useState({ x: position.x, y: position.y });
+
     useEffect(() => {
         // Adjust position if popup would go off-screen
         if (containerRef.current) {
             const rect = containerRef.current.getBoundingClientRect();
+            let newX = position.x;
+            let newY = position.y;
+
+            // Horizontal adjustment
             if (position.x + rect.width > window.innerWidth) {
-                containerRef.current.style.left = `${position.x - rect.width}px`;
+                newX = Math.max(10, window.innerWidth - rect.width - 10);
             }
+
+            // Vertical adjustment
             if (position.y + rect.height > window.innerHeight) {
-                containerRef.current.style.top = `${position.y - rect.height}px`;
+                newY = Math.max(10, window.innerHeight - rect.height - 10);
+            }
+
+            // Set adjusted position
+            if (newX !== adjustedPosition.x || newY !== adjustedPosition.y) {
+                setAdjustedPosition({ x: newX, y: newY });
             }
         }
 
@@ -29,7 +43,15 @@ const HoverChat: React.FC<HoverChatProps> = ({ position, onClose, onAddContext }
         if (inputRef.current) {
             inputRef.current.focus();
         }
-    }, [position]);
+    }, [position, containerRef.current]);
+
+    // Prevent click outside from closing immediately when component mounts
+    const [isInitialRender, setIsInitialRender] = useState(true);
+    useEffect(() => {
+        if (isInitialRender) {
+            setIsInitialRender(false);
+        }
+    }, []);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -40,32 +62,47 @@ const HoverChat: React.FC<HoverChatProps> = ({ position, onClose, onAddContext }
     };
 
     const handleClickOutside = (e: React.MouseEvent) => {
-        if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        if (!isInitialRender && containerRef.current && !containerRef.current.contains(e.target as Node)) {
+            onClose();
+        }
+        e.stopPropagation();
+    };
+
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+        // Close on escape key
+        if (e.key === 'Escape') {
             onClose();
         }
     };
 
     return (
-        <div className="hover-chat-overlay" onClick={handleClickOutside}>
+        <div
+            className="hover-chat-overlay"
+            onClick={handleClickOutside}
+            onKeyDown={handleKeyDown}
+        >
             <div
                 className="hover-chat-container"
                 ref={containerRef}
-                style={{ left: position.x, top: position.y }}
+                style={{ left: adjustedPosition.x, top: adjustedPosition.y }}
             >
                 <div className="hover-chat-header">
                     <h4>Add Context</h4>
-                    <button className="close-button" onClick={onClose}>
+                    <button className="close-button" onClick={(e) => {
+                        e.stopPropagation();
+                        onClose();
+                    }}>
                         <span className="material-icons">close</span>
                     </button>
                 </div>
                 <form onSubmit={handleSubmit}>
-          <textarea
-              ref={inputRef}
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder="Provide additional context for documenting this code..."
-              rows={4}
-          />
+                    <textarea
+                        ref={inputRef}
+                        value={input}
+                        onChange={(e) => setInput(e.target.value)}
+                        placeholder="Provide additional context for documenting this code..."
+                        rows={4}
+                    />
                     <div className="hover-chat-actions">
                         <button type="submit" disabled={!input.trim()}>
                             Add Context

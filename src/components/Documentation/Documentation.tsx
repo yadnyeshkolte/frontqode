@@ -270,9 +270,10 @@ Create a well-structured markdown document that includes:
     const documentSelectedCode = async (additionalContext = '') => {
         if (!editorRef.current || !currentDocPath) return;
 
-        const selection = editorRef.current.value.substring(
-            editorRef.current.selectionStart,
-            editorRef.current.selectionEnd
+        const textarea = editorRef.current;
+        const selection = textarea.value.substring(
+            textarea.selectionStart,
+            textarea.selectionEnd
         );
 
         if (!selection) {
@@ -288,21 +289,62 @@ Create a well-structured markdown document that includes:
 
         // If no additional context provided, show the hover chat
         if (!additionalContext) {
-            // Get cursor position for hover chat
-            const textarea = editorRef.current;
-            const cursorPosition = textarea.selectionStart;
+            // Get more accurate cursor position
+            const selectionStart = textarea.selectionStart;
+            const selectionEnd = textarea.selectionEnd;
 
-            // Calculate position based on textarea
+            // Use the midpoint of the selection for positioning
+            const midpoint = Math.floor((selectionStart + selectionEnd) / 2);
+
+            // Get position calculation
             const textareaRect = textarea.getBoundingClientRect();
-            // Approximate position based on character position (this is simplified)
-            const lines = textarea.value.substr(0, cursorPosition).split('\n');
-            const lineHeight = 18; // Approximate line height in pixels
-            const currentLine = lines.length;
 
-            // Position the hover chat near the cursor
-            const x = textareaRect.left + 50; // Offset from textarea left
-            const y = textareaRect.top + currentLine * lineHeight;
+            // More accurate position calculation using caret coordinates
+            let x = textareaRect.left + 50; // Default fallback
+            let y = textareaRect.top + 50;  // Default fallback
 
+            try {
+                // Save the current selection
+                const currentSelectionStart = textarea.selectionStart;
+                const currentSelectionEnd = textarea.selectionEnd;
+
+                // Temporarily move cursor to get position
+                textarea.setSelectionRange(midpoint, midpoint);
+
+                // Get client coordinates (this is only an approximation since getBoundingClientRect
+                // of a TextArea selection isn't directly accessible)
+                const { offsetLeft, offsetTop } = textarea;
+                const scrollLeft = textarea.scrollLeft;
+                const scrollTop = textarea.scrollTop;
+
+                // Calculate an approximate position based on text metrics
+                const text = textarea.value.substring(0, midpoint);
+                const textBeforeCursor = text.split('\n');
+                const lineNumber = textBeforeCursor.length;
+                const charPositionInLine = textBeforeCursor[textBeforeCursor.length - 1].length;
+
+                // Approximate character dimensions (you might need to adjust these)
+                const charWidth = 8;  // Approximate width of a character in pixels
+                const lineHeight = 18; // Approximate line height in pixels
+
+                // Calculate position
+                x = textareaRect.left + (charPositionInLine * charWidth) - scrollLeft;
+                y = textareaRect.top + (lineNumber * lineHeight) - scrollTop;
+
+                // Add offset to avoid covering the text and ensure visibility
+                x = Math.min(Math.max(50, x), window.innerWidth - 300);
+                y = Math.min(Math.max(50, y), window.innerHeight - 200);
+
+                // Restore the original selection
+                textarea.setSelectionRange(currentSelectionStart, currentSelectionEnd);
+            } catch (e) {
+                console.error("Error calculating cursor position:", e);
+                // Fallback to a simpler calculation
+                x = textareaRect.left + Math.min(100, textareaRect.width / 2);
+                y = textareaRect.top + Math.min(100, textareaRect.height / 3);
+            }
+
+            // Set hover chat with calculated position
             setHoverChat({
                 show: true,
                 x,
@@ -312,6 +354,7 @@ Create a well-structured markdown document that includes:
             return;
         }
 
+        // Rest of the function for handling with additional context...
         setIsProcessing(true);
         try {
             const prompt = `Document the following code selection in markdown format. Provide a clear explanation of what it does, parameters, return values, and usage examples if applicable:
@@ -336,8 +379,8 @@ Format the documentation properly for a markdown document.`;
 
             if (result.success && result.completion) {
                 // Insert the documentation at the current cursor position
-                const docStart = editorRef.current.selectionStart;
-                const currentValue = editorRef.current.value;
+                const docStart = textarea.selectionStart;
+                const currentValue = textarea.value;
 
                 const newContent =
                     currentValue.substring(0, docStart) +

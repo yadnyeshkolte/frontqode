@@ -112,31 +112,6 @@ const Documentation: React.FC<DocumentationProps> = ({ isOpen, onClose, projectP
         }
     };
 
-    const createNewDoc = async () => {
-        if (!projectPath) return;
-
-        // Get file name from user
-        const fileName = prompt('Enter a name for the documentation file:', 'README.md');
-        if (!fileName) return;
-
-        const docPath = path.join(projectPath, 'docs', fileName);
-        try {
-            // Create empty file
-            await window.electronAPI.writeFile(docPath, '# New Documentation\n\n');
-            loadDocFiles(); // Refresh file list
-            openDocFile(docPath); // Open the new file
-        } catch (error) {
-            console.error('Error creating new doc:', error);
-            setAlertState({
-                isOpen: true,
-                title: 'Error',
-                message: `Failed to create documentation file: ${error.message}`,
-                type: 'error',
-                onConfirm: null
-            });
-        }
-    };
-
     const openDocFile = async (filePath: string) => {
         try {
             const result = await window.electronAPI.readFile(filePath);
@@ -441,9 +416,6 @@ Format the documentation properly for a markdown document.`;
 
                 <div className="documentation-sidebar">
                     <div className="doc-actions">
-                        <button onClick={createNewDoc} title="Create New Documentation">
-                            <span className="material-icons">note_add</span>
-                        </button>
                         <button onClick={generateProjectDocs} title="Auto-Generate Project Documentation" disabled={isProcessing}>
                             <span className={`material-icons ${isProcessing ? "rotating" : ""}`}>
                                 {isProcessing ? "refresh" : "auto_awesome"}

@@ -9,6 +9,7 @@ import DocsContextMenu from './DocsContextMenu';
 import HoverChat from './HoverChat';
 import DocGenChatOverlay from './DocGenChatOverlay';
 import * as path from 'path';
+import DocsExplorerOverlay from './DocsExplorerOverlay';
 
 interface DocumentationProps {
     isOpen: boolean;
@@ -33,6 +34,7 @@ const Documentation: React.FC<DocumentationProps> = ({ isOpen, onClose, projectP
     const editorRef = useRef<HTMLTextAreaElement>(null);
     const [isExpanded, setIsExpanded] = useState(false);
     const [docFiles, setDocFiles] = useState<string[]>([]);
+    const [showDocsExplorer, setShowDocsExplorer] = useState(false);
 
     // New state for context menu
     const [contextMenu, setContextMenu] = useState<{
@@ -471,38 +473,36 @@ Format the documentation properly for a markdown document.`;
                 <div className="documentation-header">
                     <h3>Documentation</h3>
                     <div className="documentation-actions">
-                        <button onClick={() => setIsExpanded(!isExpanded)} title={isExpanded ? "Shrink" : "Expand"}>
-                            <span className="material-icons">{isExpanded ? "fullscreen_exit" : "fullscreen"}</span>
+                        {/* New button to show docs explorer */}
+                        <button onClick={() => setShowDocsExplorer(true)} title="Files Explorer">
+                            <span className="material-icons">folder</span>
                         </button>
-                        <button onClick={onClose} title="Close">
-                            <span className="material-icons">close</span>
-                        </button>
-                    </div>
-                </div>
 
-                <div className="documentation-sidebar">
-                    <div className="doc-actions">
+                        {/* Generate docs button moved from sidebar */}
                         <button onClick={generateProjectDocs} title="Auto-Generate Project Documentation" disabled={isProcessing}>
-                            <span className={`material-icons ${isProcessing ? "rotating" : ""}`}>
-                                {isProcessing ? "refresh" : "auto_awesome"}
-                            </span>
+                        <span className={`material-icons ${isProcessing ? "rotating" : ""}`}>
+                            {isProcessing ? "refresh" : "auto_awesome"}
+                        </span>
                         </button>
+
+                        {/* Add context files button moved from sidebar */}
                         <button onClick={handleOpenFileSelector} title="Add Context Files">
                             <span className="material-icons">attach_file</span>
                             {selectedFiles.length > 0 && (
                                 <span className="files-badge">{selectedFiles.length}</span>
                             )}
                         </button>
-                    </div>
 
-                    {/* Replace the old docs-files-list with the new DocsExplorer component */}
-                    <DocsExplorer
-                        projectPath={projectPath}
-                        onFileSelect={openDocFile}
-                        currentDocPath={currentDocPath}
-                        onContextMenu={handleDocsContextMenu}
-                        onChangeDocsFolder={selectCustomDocsFolder}
-                    />
+                        {/* Expand/shrink button */}
+                        <button onClick={() => setIsExpanded(!isExpanded)} title={isExpanded ? "Shrink" : "Expand"}>
+                            <span className="material-icons">{isExpanded ? "fullscreen_exit" : "fullscreen"}</span>
+                        </button>
+
+                        {/* Close button */}
+                        <button onClick={onClose} title="Close">
+                            <span className="material-icons">close</span>
+                        </button>
+                    </div>
                 </div>
 
                 <div className="documentation-content">
@@ -607,6 +607,15 @@ Format the documentation properly for a markdown document.`;
                     onConfirm={alertState.onConfirm ? () => alertState.onConfirm?.() : undefined}
                     confirmButtonText="OK"
                     showCancelButton={alertState.onConfirm !== null}
+                />
+                <DocsExplorerOverlay
+                    isOpen={showDocsExplorer}
+                    onClose={() => setShowDocsExplorer(false)}
+                    projectPath={projectPath}
+                    onFileSelect={openDocFile}
+                    currentDocPath={currentDocPath}
+                    onContextMenu={handleDocsContextMenu}
+                    onChangeDocsFolder={selectCustomDocsFolder}
                 />
             </div>
         </div>

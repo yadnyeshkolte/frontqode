@@ -39,6 +39,7 @@
 
 .docs-explorer-content {
     flex-grow: 1;
+    align-items: end;
     overflow-y: auto;
     padding: 5px 0;
 }

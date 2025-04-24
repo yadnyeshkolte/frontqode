@@ -1,0 +1,61 @@
+/* src/components/Documentation/DocsExplorerOverlay.css */
+.docs-explorer-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 2100; /* Higher than documentation-overlay */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.docs-explorer-panel {
+    width: 400px;
+    max-width: 90%;
+    height: 70vh;
+    background-color: #252526;
+    border-radius: 6px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+    display: flex;
+    flex-direction: column;
+}
+
+.docs-explorer-overlay-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    background-color: #252526;
+    border-bottom: 1px solid #3c3c3c;
+}
+
+.docs-explorer-overlay-header h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: normal;
+    color: #eee;
+}
+
+.docs-explorer-overlay-header button {
+    background: none;
+    border: none;
+    color: #cccccc;
+    cursor: pointer;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+}
+
+.docs-explorer-overlay-header button:hover {
+    background-color: #3c3c3c;
+}
+
+.docs-explorer-overlay-content {
+    flex-grow: 1;
+    overflow: hidden;
+}

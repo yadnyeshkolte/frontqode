@@ -195,7 +195,7 @@
 }
 
 .files-badge {
-    position: absolute;
+    position: relative;
     top: -5px;
     right: -5px;
     background-color: #0078d7;

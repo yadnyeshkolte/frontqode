@@ -44,8 +44,15 @@ const RenameDialog: React.FC<RenameDialogProps> = ({ isOpen, onClose, currentNam
     if (!isOpen) return null;
 
     return (
-        <div className="modal-overlay">
-            <div className="modal-content" ref={modalRef}>
+        <div
+            className="modal-overlay"
+            onClick={(e) => e.stopPropagation()} // Add this to prevent event bubbling
+        >
+            <div
+                className="modal-content"
+                ref={modalRef}
+                onClick={(e) => e.stopPropagation()} // Add this to prevent event bubbling
+            >
                 <h3>Rename</h3>
                 <input
                     type="text"
@@ -54,8 +61,14 @@ const RenameDialog: React.FC<RenameDialogProps> = ({ isOpen, onClose, currentNam
                     autoFocus
                 />
                 <div className="modal-actions">
-                    <button onClick={onClose}>Cancel</button>
-                    <button onClick={() => onConfirm(name)}>Rename</button>
+                    <button onClick={(e) => {
+                        e.stopPropagation(); // Add this
+                        onClose();
+                    }}>Cancel</button>
+                    <button onClick={(e) => {
+                        e.stopPropagation(); // Add this
+                        onConfirm(name);
+                    }}>Rename</button>
                 </div>
             </div>
         </div>
@@ -91,13 +104,26 @@ const DeleteDialog: React.FC<DeleteDialogProps> = ({ isOpen, onClose, itemName, 
     if (!isOpen) return null;
 
     return (
-        <div className="modal-overlay">
-            <div className="modal-content" ref={modalRef}>
+        <div
+            className="modal-overlay"
+            onClick={(e) => e.stopPropagation()}
+        >
+            <div
+                className="modal-content"
+                ref={modalRef}
+                onClick={(e) => e.stopPropagation()}
+            >
                 <h3>Confirm Delete</h3>
                 <p>Are you sure you want to delete "{itemName}"?</p>
                 <div className="modal-actions">
-                    <button onClick={onClose}>Cancel</button>
-                    <button onClick={onConfirm}>Delete</button>
+                    <button onClick={(e) => {
+                        e.stopPropagation();
+                        onClose();
+                    }}>Cancel</button>
+                    <button onClick={(e) => {
+                        e.stopPropagation();
+                        onConfirm();
+                    }}>Delete</button>
                 </div>
             </div>
         </div>
@@ -143,8 +169,15 @@ const CreateFileDialog: React.FC<CreateFileDialogProps> = ({ isOpen, onClose, on
     };
 
     return (
-        <div className="modal-overlay">
-            <div className="modal-content" ref={modalRef}>
+        <div
+            className="modal-overlay"
+            onClick={(e) => e.stopPropagation()}
+        >
+            <div
+                className="modal-content"
+                ref={modalRef}
+                onClick={(e) => e.stopPropagation()}
+            >
                 <h3>Create New File</h3>
                 <input
                     type="text"
@@ -154,8 +187,14 @@ const CreateFileDialog: React.FC<CreateFileDialogProps> = ({ isOpen, onClose, on
                 />
                 {error && <p className="error-message">{error}</p>}
                 <div className="modal-actions">
-                    <button onClick={onClose}>Cancel</button>
-                    <button onClick={handleConfirm}>Create</button>
+                    <button onClick={(e) => {
+                        e.stopPropagation();
+                        onClose();
+                    }}>Cancel</button>
+                    <button onClick={(e) => {
+                        e.stopPropagation();
+                        handleConfirm();
+                    }}>Create</button>
                 </div>
             </div>
         </div>
@@ -191,8 +230,15 @@ const CreateFolderDialog: React.FC<CreateFolderDialogProps> = ({ isOpen, onClose
     if (!isOpen) return null;
 
     return (
-        <div className="modal-overlay">
-            <div className="modal-content" ref={modalRef}>
+        <div
+            className="modal-overlay"
+            onClick={(e) => e.stopPropagation()}
+        >
+            <div
+                className="modal-content"
+                ref={modalRef}
+                onClick={(e) => e.stopPropagation()}
+            >
                 <h3>Create New Folder</h3>
                 <input
                     type="text"
@@ -201,8 +247,14 @@ const CreateFolderDialog: React.FC<CreateFolderDialogProps> = ({ isOpen, onClose
                     autoFocus
                 />
                 <div className="modal-actions">
-                    <button onClick={onClose}>Cancel</button>
-                    <button onClick={() => onConfirm(folderName)}>Create</button>
+                    <button onClick={(e) => {
+                        e.stopPropagation();
+                        onClose();
+                    }}>Cancel</button>
+                    <button onClick={(e) => {
+                        e.stopPropagation();
+                        onConfirm(folderName);
+                    }}>Create</button>
                 </div>
             </div>
         </div>
@@ -330,27 +382,47 @@ const DocsContextMenu: React.FC<DocsContextMenuProps> = ({
             <div ref={menuRef}>
                 <ContextMenu position={position} onClose={onClose}>
                     {isDirectory && (
-                        <ContextMenuItem onClick={() => setCreateFileDialogOpen(true)}>
+                        <ContextMenuItem
+                            onClick={() => {
+                                setCreateFileDialogOpen(true);
+                            }}
+                        >
                             <span className="material-icons" style={{ fontSize: '16px', marginRight: '5px' }}>note_add</span>
                             New File
                         </ContextMenuItem>
                     )}
                     {isDirectory && (
-                        <ContextMenuItem onClick={() => setCreateFolderDialogOpen(true)}>
+                        <ContextMenuItem
+                            onClick={() => {
+                                setCreateFolderDialogOpen(true);
+                            }}
+                        >
                             <span className="material-icons" style={{ fontSize: '16px', marginRight: '5px' }}>create_new_folder</span>
                             New Folder
                         </ContextMenuItem>
                     )}
-                    <ContextMenuItem onClick={() => setRenameDialogOpen(true)}>
+                    <ContextMenuItem
+                        onClick={() => {
+                            setRenameDialogOpen(true);
+                        }}
+                    >
                         <span className="material-icons" style={{ fontSize: '16px', marginRight: '5px' }}>edit</span>
                         Rename
                     </ContextMenuItem>
-                    <ContextMenuItem onClick={() => setDeleteDialogOpen(true)}>
+                    <ContextMenuItem
+                        onClick={() => {
+                            setDeleteDialogOpen(true);
+                        }}
+                    >
                         <span className="material-icons" style={{ fontSize: '16px', marginRight: '5px' }}>delete</span>
                         Delete
                     </ContextMenuItem>
                     <ContextMenuItem divider />
-                    <ContextMenuItem onClick={handleOpenInExplorer}>
+                    <ContextMenuItem
+                        onClick={() => {
+                            handleOpenInExplorer();
+                        }}
+                    >
                         <span className="material-icons" style={{ fontSize: '16px', marginRight: '5px' }}>folder_open</span>
                         Show in Explorer
                     </ContextMenuItem>

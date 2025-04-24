@@ -207,3 +207,25 @@
 .ai-assistant-button .material-icons {
     font-size: 24px;
 }
+
+
+.documentation-button {
+    background: none;
+    border: none;
+    color: #fff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+}
+
+.documentation-button:hover {
+    background-color: #383838;
+}
+
+.documentation-button .material-icons {
+    font-size: 24px;
+}

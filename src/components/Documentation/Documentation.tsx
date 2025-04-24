@@ -30,6 +30,10 @@ const Documentation: React.FC<DocumentationProps> = ({ isOpen, onClose, projectP
     const [isExpanded, setIsExpanded] = useState(false);
     const [docFiles, setDocFiles] = useState<string[]>([]);
 
+    const clearSelectedFiles = () => {
+        setSelectedFiles([]);
+    };
+
     useEffect(() => {
         if (projectPath) {
             // Check if docs directory exists, if not create it
@@ -146,7 +150,7 @@ const Documentation: React.FC<DocumentationProps> = ({ isOpen, onClose, projectP
 
             // Generate documentation using Groq
             const prompt = `Generate comprehensive markdown documentation for a project with the following structure:
-            
+    
 ${projectFiles.map(file => `- ${file}`).join('\n')}
 
 ${selectedFiles.length > 0 ? '\nHere are some key files with their content for context:' : ''}
@@ -175,6 +179,9 @@ Create a well-structured markdown document that includes:
                 // Refresh and open the new file
                 await loadDocFiles();
                 openDocFile(mainDocPath);
+
+                // Clear selected files after successful generation
+                clearSelectedFiles();
 
                 setAlertState({
                     isOpen: true,
@@ -233,6 +240,11 @@ Create a well-structured markdown document that includes:
     const handleFileSelectionConfirm = (files: FileContext[]) => {
         setSelectedFiles(files);
         setShowFileSelector(false);
+    };
+
+    const handleFileSelectionCancel = () => {
+        setShowFileSelector(false);
+        // Don't change selected files when cancelled
     };
 
     const documentSelectedCode = async () => {
@@ -421,7 +433,7 @@ Format the documentation properly for a markdown document.`;
                 <FileContextSelector
                     isOpen={showFileSelector}
                     projectPath={projectPath}
-                    onClose={() => setShowFileSelector(false)}
+                    onClose={handleFileSelectionCancel}
                     onConfirmSelection={handleFileSelectionConfirm}
                     initialSelectedFiles={selectedFiles}
                 />

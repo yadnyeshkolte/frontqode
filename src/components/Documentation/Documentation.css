@@ -45,6 +45,7 @@
 }
 
 .documentation-actions button {
+    position: relative;
     background: none;
     border: none;
     color: #cccccc;
@@ -195,9 +196,9 @@
 }
 
 .files-badge {
-    position: relative;
-    top: -5px;
-    right: -5px;
+    position: absolute;
+    top: -8px;
+    right: -8px;
     background-color: #0078d7;
     color: white;
     border-radius: 50%;
@@ -208,6 +209,7 @@
     align-items: center;
     justify-content: center;
 }
+
 
 .doc-code-button {
     margin-left: auto;

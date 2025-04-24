@@ -51,7 +51,7 @@ const DocsExplorerOverlay: React.FC<DocsExplorerOverlayProps> = ({
         <div className="docs-explorer-overlay">
             <div className="docs-explorer-panel" ref={panelRef}>
                 <div className="docs-explorer-overlay-header">
-                    <h3>Documentation Files</h3>
+                    <h3>Docs Explorer</h3>
                     <button onClick={onClose} title="Close">
                         <span className="material-icons">close</span>
                     </button>

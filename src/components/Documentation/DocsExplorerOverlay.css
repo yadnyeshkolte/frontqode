@@ -21,6 +21,8 @@
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
     display: flex;
     flex-direction: column;
+    scrollbar-width: thin; /* For Firefox */
+    scrollbar-color: #555555 #252526; /* For Firefox */
 }
 
 .docs-explorer-overlay-header {

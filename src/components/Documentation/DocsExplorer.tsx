@@ -32,8 +32,8 @@ const DocsExplorer: React.FC<DocsExplorerProps> = ({ projectPath, onFileSelect, 
     const loadDocsStructure = async () => {
         setLoading(true);
         try {
-            const docsPath = path.join(projectPath, 'docs');
-            const fileStructure = await buildFileTree(docsPath);
+            // Start from the project root instead of just docs subfolder
+            const fileStructure = await buildFileTree(projectPath);
             setStructure(fileStructure);
         } catch (error) {
             console.error('Error loading docs structure:', error);
@@ -52,16 +52,29 @@ const DocsExplorer: React.FC<DocsExplorerProps> = ({ projectPath, onFileSelect, 
                 const itemRelativePath = path.join(relativePath, item.name);
                 const fullPath = path.join(dirPath, item.name);
 
+                // Skip node_modules and other common directories to ignore
+                const ignoreDirectories = ['node_modules', '.git', 'dist', 'build', '.webpack', "build", ".idea"];
+                if (item.isDirectory && ignoreDirectories.includes(item.name)) {
+                    continue;
+                }
+
                 if (item.isDirectory) {
                     const children = await buildFileTree(fullPath, itemRelativePath);
+
+                    // Expand docs directory by default
+                    const isDocsDir = item.name === 'docs';
+
                     items.push({
                         name: item.name,
                         isDirectory: true,
                         path: fullPath,
                         children,
-                        isExpanded: false
+                        isExpanded: isDocsDir // Auto-expand the docs directory
                     });
-                } else if (item.name.endsWith('.md')) {
+                } else if (item.name.endsWith('.md') ||
+                    (path.dirname(fullPath).includes('docs') &&
+                        ['.md', '.txt', '.json'].some(ext => item.name.endsWith(ext)))) {
+                    // Include markdown files anywhere, but for other types, only include them in docs folder
                     items.push({
                         name: item.name,
                         isDirectory: false,
@@ -134,7 +147,7 @@ const DocsExplorer: React.FC<DocsExplorerProps> = ({ projectPath, onFileSelect, 
     return (
         <div className="docs-explorer">
             <div className="docs-explorer-header">
-                <h4>Documentation Files</h4>
+                <h4>Project Files</h4>
                 <div className="docs-explorer-actions">
                     <button className="refresh-button" onClick={loadDocsStructure} title="Refresh">
                         <span className="material-icons">refresh</span>

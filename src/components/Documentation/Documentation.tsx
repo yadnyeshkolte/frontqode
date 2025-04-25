@@ -9,6 +9,7 @@ import HoverChat from './HoverChat';
 import DocGenChatOverlay from './DocGenChatOverlay';
 import * as path from 'path';
 import DocsExplorerOverlay from './DocsExplorerOverlay';
+import DocumentationPreviewModal from './DocumentationPreviewModal';
 
 interface DocumentationProps {
     isOpen: boolean;
@@ -34,6 +35,8 @@ const Documentation: React.FC<DocumentationProps> = ({ isOpen, onClose, projectP
     const [isExpanded, setIsExpanded] = useState(false);
     const [, setDocFiles] = useState<string[]>([]);
     const [showDocsExplorer, setShowDocsExplorer] = useState(false);
+    const [generatedDocContent, setGeneratedDocContent] = useState<string>('');
+    const [showDocPreview, setShowDocPreview] = useState<boolean>(false);
 
     // New state for context menu
     const [contextMenu, setContextMenu] = useState<{
@@ -290,6 +293,51 @@ Create a well-structured markdown document that includes:
         // Don't change selected files when cancelled
     };
 
+    const generateDocumentation = async (selection: string, additionalContext: string) => {
+        setIsProcessing(true);
+        try {
+            const prompt = `Document the following code selection in markdown format. Provide a clear explanation of what it does, parameters, return values, and usage examples if applicable:
+
+\`\`\`
+${selection}
+\`\`\`
+
+${additionalContext ? `Additional context from user:\n${additionalContext}\n\n` : ''}
+
+${selectedFiles.length > 0 ? 'Additional context from project files:' : ''}
+${selectedFiles.map(file => `
+File: ${file.path}
+\`\`\`
+${file.content}
+\`\`\`
+`).join('\n')}
+
+Format the documentation properly for a markdown document.`;
+
+            const result = await window.electronAPI.groqGetCompletion(prompt, 2000);
+
+            if (result.success && result.completion) {
+                // Store the generated content and show preview instead of inserting immediately
+                setGeneratedDocContent(result.completion);
+                setShowDocPreview(true);
+            } else {
+                throw new Error(result.error || 'Unknown error documenting code');
+            }
+        } catch
+            (error) {
+            console.error('Error documenting selected code:', error);
+            setAlertState({
+                isOpen: true,
+                title: 'Error',
+                message: `Failed to document code: ${error.message}`,
+                type: 'error',
+                onConfirm: null
+            });
+        } finally {
+            setIsProcessing(false);
+        }
+    };
+
     const documentSelectedCode = async (additionalContext = '') => {
         if (!editorRef.current || !currentDocPath) return;
 
@@ -376,58 +424,42 @@ Create a well-structured markdown document that includes:
             return;
         }
 
-        // Rest of the function for handling with additional context...
-        setIsProcessing(true);
-        try {
-            const prompt = `Document the following code selection in markdown format. Provide a clear explanation of what it does, parameters, return values, and usage examples if applicable:
+        // Generate documentation with context
+        await generateDocumentation(selection, additionalContext);
+    };
 
-\`\`\`
-${selection}
-\`\`\`
+    const handleRegenerateDocumentation = async () => {
+        if (!editorRef.current || !currentDocPath) return;
 
-${additionalContext ? `Additional context from user:\n${additionalContext}\n\n` : ''}
+        const textarea = editorRef.current;
+        const selection = textarea.value.substring(
+            textarea.selectionStart,
+            textarea.selectionEnd
+        );
 
-${selectedFiles.length > 0 ? 'Additional context from project files:' : ''}
-${selectedFiles.map(file => `
-File: ${file.path}
-\`\`\`
-${file.content}
-\`\`\`
-`).join('\n')}
+        // Re-generate with same selection
+        await generateDocumentation(selection, "Please provide a different explanation.");
+    };
 
-Format the documentation properly for a markdown document.`;
+    const handleAcceptDocumentation = () => {
+        if (!editorRef.current || !currentDocPath) return;
 
-            const result = await window.electronAPI.groqGetCompletion(prompt, 2000);
+        const textarea = editorRef.current;
+        const docStart = textarea.selectionStart;
+        const currentValue = textarea.value;
 
-            if (result.success && result.completion) {
-                // Insert the documentation at the current cursor position
-                const docStart = textarea.selectionStart;
-                const currentValue = textarea.value;
+        const newContent =
+            currentValue.substring(0, docStart) +
+            '\n\n' + generatedDocContent + '\n\n' +
+            currentValue.substring(docStart);
 
-                const newContent =
-                    currentValue.substring(0, docStart) +
-                    '\n\n' + result.completion + '\n\n' +
-                    currentValue.substring(docStart);
+        setDocContent(newContent);
 
-                setDocContent(newContent);
+        // Save the updated content
+        window.electronAPI.writeFile(currentDocPath, newContent);
 
-                // Save the updated content
-                await window.electronAPI.writeFile(currentDocPath, newContent);
-            } else {
-                throw new Error(result.error || 'Unknown error documenting code');
-            }
-        } catch (error) {
-            console.error('Error documenting selected code:', error);
-            setAlertState({
-                isOpen: true,
-                title: 'Error',
-                message: `Failed to document code: ${error.message}`,
-                type: 'error',
-                onConfirm: null
-            });
-        } finally {
-            setIsProcessing(false);
-        }
+        // Close preview
+        setShowDocPreview(false);
     };
 
     // New method to handle hover chat context submission
@@ -613,6 +645,14 @@ Format the documentation properly for a markdown document.`;
                     currentDocPath={currentDocPath}
                     onContextMenu={handleDocsContextMenu}
                     onChangeDocsFolder={selectCustomDocsFolder}
+                />
+                <DocumentationPreviewModal
+                    isOpen={showDocPreview}
+                    onClose={() => setShowDocPreview(false)}
+                    content={generatedDocContent}
+                    onAccept={handleAcceptDocumentation}
+                    onRegenerate={handleRegenerateDocumentation}
+                    isProcessing={isProcessing}
                 />
             </div>
         </div>

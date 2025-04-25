@@ -1,6 +1,6 @@
 // src/utils/FileExplorerContextMenu.ts
 import * as path from 'path';
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 
 interface ContextMenuPosition {
     x: number;

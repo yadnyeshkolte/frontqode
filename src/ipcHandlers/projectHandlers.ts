@@ -1,4 +1,4 @@
-import { ipcMain, dialog } from 'electron';
+import { ipcMain } from 'electron';
 import FileSystemService from '../services/FileSystemService';
 
 const fileSystemService = new FileSystemService();

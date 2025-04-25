@@ -4,7 +4,6 @@ import './Documentation.css';
 import AlertModal from '../AlertModal/AlertModal';
 import MarkdownRenderer from '../MarkdownRenderer/MarkdownRenderer';
 import FileContextSelector, { FileContext } from '../AIAssistant/FileContextSelector/FileContextSelector';
-import DocsExplorer from './DocsExplorer';
 import DocsContextMenu from './DocsContextMenu';
 import HoverChat from './HoverChat';
 import DocGenChatOverlay from './DocGenChatOverlay';
@@ -33,7 +32,7 @@ const Documentation: React.FC<DocumentationProps> = ({ isOpen, onClose, projectP
     });
     const editorRef = useRef<HTMLTextAreaElement>(null);
     const [isExpanded, setIsExpanded] = useState(false);
-    const [docFiles, setDocFiles] = useState<string[]>([]);
+    const [, setDocFiles] = useState<string[]>([]);
     const [showDocsExplorer, setShowDocsExplorer] = useState(false);
 
     // New state for context menu
@@ -66,7 +65,7 @@ const Documentation: React.FC<DocumentationProps> = ({ isOpen, onClose, projectP
 
     // New state for doc generation overlay
     const [showDocGenOverlay, setShowDocGenOverlay] = useState(false);
-    const [additionalDocGenContext, setAdditionalDocGenContext] = useState('');
+    const [, setAdditionalDocGenContext] = useState('');
 
     const clearSelectedFiles = () => {
         setSelectedFiles([]);
@@ -337,7 +336,6 @@ Create a well-structured markdown document that includes:
 
                 // Get client coordinates (this is only an approximation since getBoundingClientRect
                 // of a TextArea selection isn't directly accessible)
-                const { offsetLeft, offsetTop } = textarea;
                 const scrollLeft = textarea.scrollLeft;
                 const scrollTop = textarea.scrollTop;
 

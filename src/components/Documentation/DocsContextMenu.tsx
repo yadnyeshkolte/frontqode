@@ -266,8 +266,7 @@ const DocsContextMenu: React.FC<DocsContextMenuProps> = ({
                                                              onClose,
                                                              filePath,
                                                              isDirectory,
-                                                             onReload,
-                                                             projectPath
+                                                             onReload
                                                          }) => {
     const [renameDialogOpen, setRenameDialogOpen] = useState(false);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);

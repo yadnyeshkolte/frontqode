@@ -1,5 +1,4 @@
 // src/utils/FileExplorerUtils.ts
-import * as path from 'path';
 
 export interface FileTreeItem {
     name: string;
@@ -119,15 +118,3 @@ export const processFileTree = (tree: FileTreeItem[]): FileTreeItem[] => {
 };
 
 // Function to determine if a path should be ignored
-export const shouldIgnorePath = (filePath: string): boolean => {
-    const basename = path.basename(filePath);
-
-    // Common files to ignore
-    const ignoredFiles = [
-        '.DS_Store',
-        'Thumbs.db',
-        '.git'
-    ];
-
-    return ignoredFiles.includes(basename);
-};

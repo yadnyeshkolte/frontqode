@@ -273,16 +273,6 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ isOpen, onClose, projectPath 
     const handleFileSelectionConfirm = (files: FileContext[]) => {
         setSelectedFiles(files);
     };
-
-    const handleFileSelectionCancel = () => {
-        setShowFileSelector(false);
-        // No need to change selected files when cancelled
-    };
-
-    const handleFileSelectionClear = () => {
-        setSelectedFiles([]);
-    };
-
     const handleSaveApiKey = async () => {
         if (!apiKeyInput.trim()) return;
 

@@ -11,8 +11,7 @@ const SystemService = {
     restartApplication: async (): Promise<{ success: boolean; error?: string }> => {
         try {
             // Call the electron API to restart the application
-            const result = await window.electronAPI.restartApplication();
-            return result;
+            return await window.electronAPI.restartApplication();
         } catch (error) {
             console.error('Failed to restart application:', error);
             return { success: false, error: error.message };

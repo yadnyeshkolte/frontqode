@@ -5,6 +5,7 @@ import { editor } from 'monaco-editor';
 import * as path from 'path';
 import 'vscode/localExtensionHost';
 import debounce from 'lodash/debounce';
+import './AISuggetion.css';
 
 // Initialize Monaco environment
 self.MonacoEnvironment = {
@@ -52,7 +53,7 @@ const MonacoEditor: React.FC<MonacoEditorProps> = ({
             try {
                 const result = await window.electronAPI.groqGetCompletion(
                     `Suggest code improvements or completions for the following ${lang} code:\n\n${code}`,
-                    150 // Smaller token limit for suggestions
+                    200 // Smaller token limit for suggestions
                 );
                 if (result.success && result.completion) {
                     setCodeSuggestions(result.completion);
@@ -239,13 +240,13 @@ const MonacoEditor: React.FC<MonacoEditorProps> = ({
             {showSuggestions && codeSuggestions && (
                 <div className="code-suggestions">
                     <div className="suggestions-header">
-                        <h4>AI Suggestions</h4>
-                        <button onClick={() => setShowSuggestions(false)}>
+                        <h4>AI Suggestion</h4>
+                        <button onClick={() => setShowSuggestions(false)} aria-label="Close suggestions">
                             <span className="material-icons">close</span>
                         </button>
                     </div>
                     <div className="suggestions-content">
-                        {codeSuggestions}
+                        <pre>{codeSuggestions}</pre>
                     </div>
                 </div>
             )}

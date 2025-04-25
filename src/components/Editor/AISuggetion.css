@@ -1,0 +1,78 @@
+/* Code Suggestions Panel */
+.code-suggestions {
+    background: rgba(30, 30, 30, 0.7); /* Reduced opacity for transparency */
+    backdrop-filter: blur(8px); /* Creates the frosted glass effect */
+    border-top: 1px solid #454545;
+    color: #d4d4d4;
+    max-height: 200px;
+    overflow-y: auto;
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 13px;
+    padding: 0;
+    margin-top: 5px;
+}
+
+.suggestions-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 2px 12px;
+    background-color: rgba(45, 45, 45, 0.7);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid #454545;
+}
+
+.suggestions-header h4 {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 500;
+    color: #cccccc;
+}
+
+.suggestions-header button {
+    background: none;
+    border: none;
+    color: #8f8f8f;
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 3px;
+    height: 24px;
+    width: 24px;
+}
+
+.suggestions-header button:hover {
+    background-color: #3a3a3a;
+    color: #ffffff;
+}
+
+.suggestions-content {
+    padding: 12px;
+    white-space: pre-wrap;
+    line-height: 1.5;
+}
+
+/* For the material icons */
+.material-icons {
+    font-size: 18px;
+}
+
+/* Scrollbar styling for the suggestions panel */
+.code-suggestions::-webkit-scrollbar {
+    width: 8px;
+}
+
+.code-suggestions::-webkit-scrollbar-track {
+    background: #1e1e1e;
+}
+
+.code-suggestions::-webkit-scrollbar-thumb {
+    background: #555;
+    border-radius: 4px;
+}
+
+.code-suggestions::-webkit-scrollbar-thumb:hover {
+    background: #666;
+}

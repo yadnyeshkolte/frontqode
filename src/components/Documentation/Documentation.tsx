@@ -329,7 +329,11 @@ ${file.content}
 \`\`\`
 `).join('\n')}
 
-Format the documentation properly for a markdown document. DO NOT wrap your entire response in markdown code blocks, as your output will be directly used as markdown content.`;
+Format the documentation properly for a markdown document. 
+VERY IMPORTANT: 
+1. DO NOT include any AI commentary or phrases like "here I have generated this", "you can implement now", etc.
+2. DO NOT wrap your entire response in markdown code blocks, as your output will be directly used as markdown content.
+3. Only provide the documentation itself, without any explanation of how you generated it.`;
 
             const result = await window.electronAPI.groqGetCompletion(prompt, 2000);
 
@@ -343,7 +347,14 @@ Format the documentation properly for a markdown document. DO NOT wrap your enti
                 if (match && match[2]) {
                     cleanedContent = match[2];
                 }
-
+                // Further clean any remaining AI commentary patterns
+                cleanedContent = cleanedContent
+                    .replace(/^(Here is|I have generated|Here's) (the|a|your) documentation( for the selected code)?:?\s*/i, '')
+                    .replace(/^(Below is|Following is) (the|a|your) documentation( for the selected code)?:?\s*/i, '')
+                    .replace(/You can (now )?(implement|use|add) this( documentation)?( now)?\.?\s*$/i, '')
+                    .replace(/Let me know if you need any adjustments\.?\s*$/i, '')
+                    .replace(/Hope this helps!\.?\s*$/i, '')
+                    .trim();
                 // Store the cleaned generated content and show preview
                 setGeneratedDocContent(cleanedContent);
                 setShowDocPreview(true);
@@ -471,13 +482,16 @@ Format the documentation properly for a markdown document. DO NOT wrap your enti
         if (!editorRef.current || !currentDocPath) return;
 
         const textarea = editorRef.current;
-        const docStart = textarea.selectionStart;
+        const selectionStart = textarea.selectionStart;
+        const selectionEnd = textarea.selectionEnd;
         const currentValue = textarea.value;
 
+        // Replace the selected text with the generated documentation
+        // instead of just adding it at the selection start
         const newContent =
-            currentValue.substring(0, docStart) +
+            currentValue.substring(0, selectionStart) +
             '\n\n' + generatedDocContent + '\n\n' +
-            currentValue.substring(docStart);
+            currentValue.substring(selectionEnd);
 
         setDocContent(newContent);
 

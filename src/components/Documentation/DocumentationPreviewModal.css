@@ -11,13 +11,26 @@
     z-index: 1000;
 }
 
+.doc-preview-embedded {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(34, 34, 34, 0.97);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10;
+}
+
 .doc-preview-panel {
     background-color: #222;
     border-radius: 8px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    width: 80%;
+    width: 90%;
     max-width: 900px;
-    max-height: 80vh;
+    max-height: 90%;
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -58,6 +71,8 @@
     flex: 1;
     display: flex;
     flex-direction: column;
+    scrollbar-width: thin; /* For Firefox */
+    scrollbar-color: #555555 #252526; /* For Firefox */
 }
 
 .doc-preview-markdown {
@@ -100,9 +115,19 @@
     background-color: indianred;
 }
 
+.context-button {
+    background-color: #5b67ca;
+    color: white;
+    border: 1px solid #4a56b9;
+}
+
+.context-button:hover {
+    background-color: #4a56b9;
+}
+
 .regenerate-button {
-    background-color: lightblue;
-    color: #0366d6;
+    color: white;
+    background-color: #35acce;
     border: 1px solid #0366d6;
 }
 
@@ -121,6 +146,47 @@
 
 .rotating {
     animation: rotate 1s linear infinite;
+}
+
+.context-input-container {
+    margin-bottom: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.context-input {
+    width: 95%;
+    height: 100px;
+    padding: 8px;
+    border-radius: 4px;
+    border: 1px solid #666;
+    background-color: #444;
+    color: white;
+    resize: vertical;
+}
+
+.context-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.context-actions button {
+    padding: 6px 12px;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+}
+
+.context-actions button:first-child {
+    background-color: #f6f8fa;
+    color: #24292e;
+}
+
+.context-actions button:last-child {
+    background-color: #2ea44f;
+    color: white;
 }
 
 @keyframes rotate {

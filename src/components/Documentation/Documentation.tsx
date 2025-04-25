@@ -312,19 +312,28 @@ ${file.content}
 \`\`\`
 `).join('\n')}
 
-Format the documentation properly for a markdown document.`;
+Format the documentation properly for a markdown document. DO NOT wrap your entire response in markdown code blocks, as your output will be directly used as markdown content.`;
 
             const result = await window.electronAPI.groqGetCompletion(prompt, 2000);
 
             if (result.success && result.completion) {
-                // Store the generated content and show preview instead of inserting immediately
-                setGeneratedDocContent(result.completion);
+                // Remove any outer markdown code block syntax if present
+                let cleanedContent = result.completion;
+
+                // Check if the content starts with ```markdown and ends with ```
+                const markdownBlockRegex = /^```(markdown|md)?\s*([\s\S]*?)```\s*$/;
+                const match = cleanedContent.match(markdownBlockRegex);
+                if (match && match[2]) {
+                    cleanedContent = match[2];
+                }
+
+                // Store the cleaned generated content and show preview
+                setGeneratedDocContent(cleanedContent);
                 setShowDocPreview(true);
             } else {
                 throw new Error(result.error || 'Unknown error documenting code');
             }
-        } catch
-            (error) {
+        } catch (error) {
             console.error('Error documenting selected code:', error);
             setAlertState({
                 isOpen: true,
@@ -462,6 +471,20 @@ Format the documentation properly for a markdown document.`;
         setShowDocPreview(false);
     };
 
+    // Handle adding more context for documentation generation
+    const handleAddDocContext = async (additionalContext: string) => {
+        if (!editorRef.current || !currentDocPath) return;
+
+        const textarea = editorRef.current;
+        const selection = textarea.value.substring(
+            textarea.selectionStart,
+            textarea.selectionEnd
+        );
+
+        // Generate with new context
+        await generateDocumentation(selection, additionalContext);
+    };
+
     // New method to handle hover chat context submission
     const handleHoverChatSubmit = (context: string) => {
         setHoverChat(prev => ({ ...prev, show: false }));
@@ -567,26 +590,42 @@ Format the documentation properly for a markdown document.`;
                         </button>
                     </div>
 
-                    {activeTab === 'editor' ? (
-                        <textarea
-                            ref={editorRef}
-                            className="documentation-editor"
-                            value={docContent}
-                            onChange={(e) => setDocContent(e.target.value)}
-                            placeholder="# Start your documentation here..."
-                            onKeyDown={(e) => {
-                                // Alt+D shortcut for document selection
-                                if (e.altKey && e.key === 'd') {
-                                    e.preventDefault();
-                                    documentSelectedCode();
-                                }
-                            }}
-                        />
-                    ) : (
-                        <div className="documentation-preview">
-                            <MarkdownRenderer content={docContent} />
-                        </div>
-                    )}
+                    <div className="editor-container" style={{ position: 'relative', height: '100%' }}>
+                        {activeTab === 'editor' ? (
+                            <textarea
+                                ref={editorRef}
+                                className="documentation-editor"
+                                value={docContent}
+                                onChange={(e) => setDocContent(e.target.value)}
+                                placeholder="# Start your documentation here..."
+                                onKeyDown={(e) => {
+                                    // Alt+D shortcut for document selection
+                                    if (e.altKey && e.key === 'd') {
+                                        e.preventDefault();
+                                        documentSelectedCode();
+                                    }
+                                }}
+                            />
+                        ) : (
+                            <div className="documentation-preview">
+                                <MarkdownRenderer content={docContent} />
+                            </div>
+                        )}
+
+                        {/* Embedded documentation preview modal */}
+                        {showDocPreview && activeTab === 'editor' && (
+                            <DocumentationPreviewModal
+                                isOpen={showDocPreview}
+                                onClose={() => setShowDocPreview(false)}
+                                content={generatedDocContent}
+                                onAccept={handleAcceptDocumentation}
+                                onRegenerate={handleRegenerateDocumentation}
+                                onAddContext={handleAddDocContext}
+                                isProcessing={isProcessing}
+                                isEmbedded={true}
+                            />
+                        )}
+                    </div>
                 </div>
 
                 {/* Context menu for docs explorer */}
@@ -646,14 +685,20 @@ Format the documentation properly for a markdown document.`;
                     onContextMenu={handleDocsContextMenu}
                     onChangeDocsFolder={selectCustomDocsFolder}
                 />
-                <DocumentationPreviewModal
-                    isOpen={showDocPreview}
-                    onClose={() => setShowDocPreview(false)}
-                    content={generatedDocContent}
-                    onAccept={handleAcceptDocumentation}
-                    onRegenerate={handleRegenerateDocumentation}
-                    isProcessing={isProcessing}
-                />
+
+                {/* Non-embedded version for non-editor views */}
+                {showDocPreview && activeTab !== 'editor' && (
+                    <DocumentationPreviewModal
+                        isOpen={showDocPreview}
+                        onClose={() => setShowDocPreview(false)}
+                        content={generatedDocContent}
+                        onAccept={handleAcceptDocumentation}
+                        onRegenerate={handleRegenerateDocumentation}
+                        onAddContext={handleAddDocContext}
+                        isProcessing={isProcessing}
+                        isEmbedded={false}
+                    />
+                )}
             </div>
         </div>
     );

@@ -1,5 +1,5 @@
 // src/components/Documentation/DocumentationPreviewModal.tsx
-import React from 'react';
+import React, { useState } from 'react';
 import MarkdownRenderer from '../MarkdownRenderer/MarkdownRenderer';
 import './DocumentationPreviewModal.css';
 
@@ -9,7 +9,9 @@ interface DocumentationPreviewModalProps {
     content: string;
     onAccept: () => void;
     onRegenerate: () => void;
+    onAddContext: (context: string) => void;
     isProcessing: boolean;
+    isEmbedded?: boolean;
 }
 
 const DocumentationPreviewModal: React.FC<DocumentationPreviewModalProps> = ({
@@ -18,12 +20,27 @@ const DocumentationPreviewModal: React.FC<DocumentationPreviewModalProps> = ({
                                                                                  content,
                                                                                  onAccept,
                                                                                  onRegenerate,
-                                                                                 isProcessing
+                                                                                 onAddContext,
+                                                                                 isProcessing,
+                                                                                 isEmbedded = false
                                                                              }) => {
+    const [showContextInput, setShowContextInput] = useState(false);
+    const [additionalContext, setAdditionalContext] = useState('');
+
     if (!isOpen) return null;
 
+    const handleAddContext = () => {
+        onAddContext(additionalContext);
+        setAdditionalContext('');
+        setShowContextInput(false);
+    };
+
+    const containerClass = isEmbedded
+        ? "doc-preview-embedded"
+        : "doc-preview-overlay";
+
     return (
-        <div className="doc-preview-overlay">
+        <div className={containerClass}>
             <div className="doc-preview-panel">
                 <div className="doc-preview-header">
                     <h3>Preview Documentation</h3>
@@ -35,6 +52,22 @@ const DocumentationPreviewModal: React.FC<DocumentationPreviewModalProps> = ({
                     <div className="doc-preview-markdown">
                         <MarkdownRenderer content={content} />
                     </div>
+
+                    {showContextInput && (
+                        <div className="context-input-container">
+                            <textarea
+                                value={additionalContext}
+                                onChange={(e) => setAdditionalContext(e.target.value)}
+                                placeholder="Provide additional context for regeneration..."
+                                className="context-input"
+                            />
+                            <div className="context-actions">
+                                <button onClick={() => setShowContextInput(false)}>Cancel</button>
+                                <button onClick={handleAddContext}>Submit & Regenerate</button>
+                            </div>
+                        </div>
+                    )}
+
                     <div className="doc-preview-actions">
                         <button
                             onClick={onClose}
@@ -42,6 +75,14 @@ const DocumentationPreviewModal: React.FC<DocumentationPreviewModalProps> = ({
                             className="cancel-button"
                         >
                             Cancel
+                        </button>
+                        <button
+                            onClick={() => setShowContextInput(true)}
+                            disabled={isProcessing}
+                            className="context-button"
+                        >
+                            <span className="material-icons">chat</span>
+                            Add Context
                         </button>
                         <button
                             onClick={onRegenerate}

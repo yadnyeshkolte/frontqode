@@ -11,10 +11,21 @@ import * as path from 'path';
 import DocsExplorerOverlay from './DocsExplorerOverlay';
 import DocumentationPreviewModal from './DocumentationPreviewModal';
 
+// Key for localStorage
+const DOC_STATE_KEY_PREFIX = 'frontqode-doc-state-';
+
 interface DocumentationProps {
     isOpen: boolean;
     onClose: () => void;
     projectPath: string;
+}
+
+interface DocState {
+    currentDocPath: string | null;
+    docContent: string;
+    selectedFiles: FileContext[];
+    isExpanded: boolean;
+    activeTab: 'editor' | 'preview';
 }
 
 const Documentation: React.FC<DocumentationProps> = ({ isOpen, onClose, projectPath }) => {
@@ -33,10 +44,11 @@ const Documentation: React.FC<DocumentationProps> = ({ isOpen, onClose, projectP
     });
     const editorRef = useRef<HTMLTextAreaElement>(null);
     const [isExpanded, setIsExpanded] = useState(false);
-    const [, setDocFiles] = useState<string[]>([]);
+    const [docFiles, setDocFiles] = useState<string[]>([]);
     const [showDocsExplorer, setShowDocsExplorer] = useState(false);
     const [generatedDocContent, setGeneratedDocContent] = useState<string>('');
     const [showDocPreview, setShowDocPreview] = useState<boolean>(false);
+    const [stateInitialized, setStateInitialized] = useState(false);
 
 
     // New state for context menu
@@ -71,9 +83,114 @@ const Documentation: React.FC<DocumentationProps> = ({ isOpen, onClose, projectP
     const [showDocGenOverlay, setShowDocGenOverlay] = useState(false);
     const [, setAdditionalDocGenContext] = useState('');
 
+    // Helper function to get storage key for this project
+    const getStorageKey = () => `${DOC_STATE_KEY_PREFIX}${projectPath}`;
+
+    // Load state from localStorage or project settings when component mounts
+    useEffect(() => {
+        if (projectPath && isOpen && !stateInitialized) {
+            loadDocumentationState();
+        }
+    }, [projectPath, isOpen]);
+
+    // Save state when component unmounts or panel is closed
+    useEffect(() => {
+        if (projectPath && stateInitialized) {
+            if (!isOpen) {
+                // When closing, save current state
+                saveDocumentationState();
+            }
+        }
+    }, [isOpen, projectPath, currentDocPath, docContent, selectedFiles, isExpanded, activeTab]);
+
+    // Save current document state
+    const saveDocumentationState = async () => {
+        try {
+            // First, save any unsaved changes to the current file
+            if (currentDocPath && docContent) {
+                await saveCurrentDoc();
+            }
+
+            // Prepare state to save
+            const stateToSave: DocState = {
+                currentDocPath,
+                docContent,
+                selectedFiles,
+                isExpanded,
+                activeTab
+            };
+
+            // Save to project settings
+            await window.electronAPI.saveProjectSetting(
+                projectPath,
+                'documentationState',
+                stateToSave
+            );
+
+            console.log('Documentation state saved successfully');
+        } catch (error) {
+            console.error('Error saving documentation state:', error);
+        }
+    };
+
+    // Load saved documentation state
+    const loadDocumentationState = async () => {
+        try {
+            // First, ensure docs directory exists
+            await checkDocsDirectory();
+
+            // Load doc files list
+            await loadDocFiles();
+
+            // Try to load state from project settings
+            const result = await window.electronAPI.readFile(
+                path.join(projectPath, '.project-settings.json')
+            );
+
+            if (result.success && result.content) {
+                const settings = JSON.parse(result.content);
+                const savedState = settings.documentationState as DocState | undefined;
+
+                if (savedState) {
+                    // Check if the saved document still exists
+                    if (savedState.currentDocPath) {
+                        const fileExists = await window.electronAPI.readFile(savedState.currentDocPath);
+
+                        if (fileExists.success) {
+                            // Restore state
+                            setCurrentDocPath(savedState.currentDocPath);
+                            setDocContent(fileExists.content || '');
+                            setSelectedFiles(savedState.selectedFiles || []);
+                            setIsExpanded(savedState.isExpanded || false);
+                            setActiveTab(savedState.activeTab || 'editor');
+                            setStateInitialized(true);
+                            console.log('Documentation state restored successfully');
+                            return;
+                        }
+                    }
+                }
+            }
+
+            // If we get here, either no saved state was found or the file no longer exists
+            setStateInitialized(true);
+        } catch (error) {
+            console.error('Error loading documentation state:', error);
+            setStateInitialized(true);
+        }
+    };
+
     const clearSelectedFiles = () => {
         setSelectedFiles([]);
     };
+    useEffect(() => {
+        if (projectPath) {
+            // Check if docs directory exists, if not create it
+            checkDocsDirectory();
+            // Load list of existing doc files
+            loadDocFiles();
+        }
+    }, [projectPath]);
+
     useEffect(() => {
         if (projectPath) {
             // Check if docs directory exists, if not create it
@@ -153,6 +270,12 @@ const Documentation: React.FC<DocumentationProps> = ({ isOpen, onClose, projectP
         } catch (error) {
             console.error('Error saving doc file:', error);
         }
+    };
+
+    // Custom onClose handler to save state before closing
+    const handleClose = async () => {
+        await saveDocumentationState();
+        onClose();
     };
 
     const generateProjectDocs = async () => {
@@ -581,8 +704,8 @@ VERY IMPORTANT:
                             <span className="material-icons">{isExpanded ? "fullscreen_exit" : "fullscreen"}</span>
                         </button>
 
-                        {/* Close button */}
-                        <button onClick={onClose} title="Close">
+                        {/* Close button - use our custom handler */}
+                        <button onClick={handleClose} title="Close">
                             <span className="material-icons">close</span>
                         </button>
                     </div>

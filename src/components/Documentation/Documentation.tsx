@@ -209,12 +209,12 @@ ${additionalContext ? `\nAdditional context from user:\n${additionalContext}` : 
 Create a well-structured markdown document that includes:
 1. Project overview
 2. Main components/modules description 
-3. Architecture diagram (described in text)
+3. Architecture diagram (described in text)z
 4. Key functions and classes documentation
 5. Setup instructions based on visible configuration files
 `;
 
-            const result = await window.electronAPI.groqGetCompletion(prompt, 10000);
+            const result = await window.electronAPI.groqGetCompletion(prompt, 50000);
 
             if (result.success && result.completion) {
                 // Create a main documentation file
@@ -229,6 +229,8 @@ Create a well-structured markdown document that includes:
                 clearSelectedFiles();
                 // Clear additional context
                 setAdditionalDocGenContext('');
+
+                setShowDocGenOverlay(false);
 
                 setAlertState({
                     isOpen: true,

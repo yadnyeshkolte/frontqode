@@ -1,6 +1,7 @@
 // src/components/MarkdownRenderer/MarkdownRenderer.tsx
 import React from 'react';
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm'; // Import remark-gfm plugin
 import './MarkdownRenderer.css';
 
 interface MarkdownRendererProps {
@@ -36,7 +37,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
             });
     };
 
-    // Custom renderers for code blocks with proper types
+    // Custom renderers for markdown elements
     const renderers = {
         code: ({ inline, className, children, ...props }: CodeProps) => {
             const match = /language-(\w+)/.exec(className || '');
@@ -69,12 +70,26 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
                     {children}
                 </code>
             );
-        }
+        },
+        // Table components renderers - fixed to remove unused node parameter
+        table: ({ children, ...props }: any) => (
+            <div className="table-wrapper">
+                <table {...props}>{children}</table>
+            </div>
+        ),
+        thead: ({ children, ...props }: any) => <thead {...props}>{children}</thead>,
+        tbody: ({ children, ...props }: any) => <tbody {...props}>{children}</tbody>,
+        tr: ({ children, ...props }: any) => <tr {...props}>{children}</tr>,
+        th: ({ children, ...props }: any) => <th {...props}>{children}</th>,
+        td: ({ children, ...props }: any) => <td {...props}>{children}</td>,
     };
 
     return (
         <div className="markdown-content">
-            <ReactMarkdown components={renderers}>
+            <ReactMarkdown
+                components={renderers}
+                remarkPlugins={[remarkGfm]} // Add remarkGfm plugin for table support
+            >
                 {content}
             </ReactMarkdown>
         </div>

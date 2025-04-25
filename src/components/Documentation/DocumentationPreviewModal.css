@@ -4,7 +4,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: rgba(0, 0, 0, 0.5);
+    background-color: rgba(1, 1, 1, 0.3);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -17,7 +17,8 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: rgba(34, 34, 34, 0.97);
+    background-color: rgba(34, 34, 34, 0.37);
+    backdrop-filter: blur(10px); /* Blur effect */
     display: flex;
     justify-content: center;
     align-items: center;
@@ -156,7 +157,7 @@
 }
 
 .context-input {
-    width: 95%;
+    width: 97%;
     height: 100px;
     padding: 8px;
     border-radius: 4px;

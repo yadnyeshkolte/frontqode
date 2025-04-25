@@ -38,6 +38,7 @@ const Documentation: React.FC<DocumentationProps> = ({ isOpen, onClose, projectP
     const [generatedDocContent, setGeneratedDocContent] = useState<string>('');
     const [showDocPreview, setShowDocPreview] = useState<boolean>(false);
 
+
     // New state for context menu
     const [contextMenu, setContextMenu] = useState<{
         show: boolean;

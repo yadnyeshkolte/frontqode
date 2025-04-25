@@ -113,12 +113,13 @@
 .documentation-preview {
     flex-grow: 1;
     padding: 15px;
-    overflow-y: auto;
+    overflow-y: auto !important; /* Force overflow to be auto */
+    height: 90%;
     background-color: #1e1e1e;
-    scrollbar-width: thin; /* For Firefox */
-    scrollbar-color: #555555 #252526; /* For Firefox */
+    scrollbar-width: thin;
+    scrollbar-color: #555555 #252526;
+    z-index: 1; /* Ensure it's below modals */
 }
-
 .documentation-sidebar {
     display: flex;
     flex-direction: column;

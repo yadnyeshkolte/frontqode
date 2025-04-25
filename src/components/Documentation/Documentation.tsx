@@ -297,6 +297,20 @@ Create a well-structured markdown document that includes:
     const generateDocumentation = async (selection: string, additionalContext: string) => {
         setIsProcessing(true);
         try {
+            // Get the current file content
+            const currentFile = currentDocPath ? {
+                path: currentDocPath,
+                content: docContent // We already have this in state
+            } : null;
+
+            // Prepare an array of files for context that includes the current file
+            const contextFiles = [...selectedFiles];
+
+            // Add current file to context if it exists and isn't already included
+            if (currentFile && !contextFiles.some(file => file.path === currentFile.path)) {
+                contextFiles.push(currentFile as FileContext);
+            }
+
             const prompt = `Document the following code selection in markdown format. Provide a clear explanation of what it does, parameters, return values, and usage examples if applicable:
 
 \`\`\`
@@ -305,8 +319,8 @@ ${selection}
 
 ${additionalContext ? `Additional context from user:\n${additionalContext}\n\n` : ''}
 
-${selectedFiles.length > 0 ? 'Additional context from project files:' : ''}
-${selectedFiles.map(file => `
+${contextFiles.length > 0 ? 'Context from project files:' : ''}
+${contextFiles.map(file => `
 File: ${file.path}
 \`\`\`
 ${file.content}

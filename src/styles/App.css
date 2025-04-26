@@ -229,3 +229,24 @@
 .documentation-button .material-icons {
     font-size: 24px;
 }
+
+.ui-automation-button {
+    background: none;
+    border: none;
+    color: #fff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+}
+
+.ui-automation-button:hover {
+    background-color: #383838;
+}
+
+.ui-automation-button .material-icons {
+    font-size: 24px;
+}

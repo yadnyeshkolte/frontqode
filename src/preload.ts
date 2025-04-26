@@ -1,6 +1,7 @@
 // src/preload.ts
 import { contextBridge, ipcRenderer } from 'electron';
 import { setupMenuEvents } from './menuEvents';
+import os from 'os';
 
 // Expose protected methods that allow the renderer process to use
 // the ipcRenderer without exposing the entire object
@@ -82,6 +83,18 @@ contextBridge.exposeInMainWorld('electronAPI', {
     saveProjectSetting: (projectPath: string, settingKey: string, settingValue: any) =>
         ipcRenderer.invoke('save-project-setting', projectPath, settingKey, settingValue),
 
+    // UI Automation
+    uiAutomationConnect: (hostPort?: string) =>
+        ipcRenderer.invoke('ui-automation-connect', hostPort),
+    uiAutomationLaunchBrowser: (url: string) =>
+        ipcRenderer.invoke('ui-automation-launch-browser', url),
+    uiAutomationClick: (selector: string) =>
+        ipcRenderer.invoke('ui-automation-click', selector),
+    uiAutomationType: (selector: string, text: string) =>
+        ipcRenderer.invoke('ui-automation-type', selector, text),
+    uiAutomationWaitForElement: (selector: string, timeout?: number) =>
+        ipcRenderer.invoke('ui-automation-wait-for-element', selector, timeout),
+    getPlatform: () => ipcRenderer.invoke('get-platform-info'),
     restartApplication: () => ipcRenderer.invoke('restart-application'),
 
     // Set up menu event listeners

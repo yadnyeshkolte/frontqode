@@ -9,6 +9,7 @@ import LSPManager from '../../managers/LSPManager';
 import FileOperationsService from '../../services/FileOperationsService';
 import AIAssistant from '../AIAssistant/AIAssistant';
 import Documentation from '../Documentation/Documentation';
+import UIAutomation from '../UIAutomation/UIAutomation';
 
 interface AppProps {
     projectPath: string;
@@ -27,6 +28,7 @@ const App: React.FC<AppProps> = ({ projectPath }) => {
     const fileOpsService = useRef(new FileOperationsService()).current;
     const [isAIAssistantOpen, setIsAIAssistantOpen] = useState<boolean>(false);
     const [isDocumentationOpen, setIsDocumentationOpen] = useState<boolean>(false);
+    const [isUIAutomationOpen, setIsUIAutomationOpen] = useState<boolean>(false);
 
     // Load project data when the project path changes
     useEffect(() => {
@@ -271,6 +273,13 @@ const App: React.FC<AppProps> = ({ projectPath }) => {
                         >
                             <span className="material-icons">description</span>
                         </button>
+                        <button
+                            className="ui-automation-button"
+                            onClick={() => setIsUIAutomationOpen(!isUIAutomationOpen)}
+                            title="UI Automation"
+                        >
+                            <span className="material-icons">smart_display</span>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -355,6 +364,13 @@ const App: React.FC<AppProps> = ({ projectPath }) => {
                 <Documentation
                     isOpen={isDocumentationOpen}
                     onClose={() => setIsDocumentationOpen(false)}
+                    projectPath={projectPath}
+                />
+            )}
+            {isUIAutomationOpen && (
+                <UIAutomation
+                    isOpen={isUIAutomationOpen}
+                    onClose={() => setIsUIAutomationOpen(false)}
                     projectPath={projectPath}
                 />
             )}

@@ -7,6 +7,12 @@ interface TerminalOutput {
     data: string;
 }
 
+interface PlatformInfo {
+    platform: string;  // 'win32', 'darwin', 'linux', etc.
+    osName: string;    // 'Windows_NT', 'Darwin', 'Linux', etc.
+    version: string;   // OS version string
+}
+
 interface ElectronAPI {
     createProject: (projectName: string) => Promise<{ success: boolean; projectPath?: string; error?: string }>;
     openProjectDialog: () => Promise<{ success: boolean; projectPath?: string; error?: string }>;
@@ -15,6 +21,9 @@ interface ElectronAPI {
     readFile: (filePath: string) => Promise<{ success: boolean; content?: string; error?: string }>;
     writeFile: (filePath: string, content: string) => Promise<{ success: boolean; error?: string }>;
     getProjectsDir: () => Promise<{ success: boolean; projectsDir?: string; error?: string }>;
+
+    // Platform detection
+    getPlatform: () => Promise<PlatformInfo>;
 
     //Documentation operations
 
@@ -139,9 +148,21 @@ interface ElectronAPI {
     scanDirectory: (dirPath: string, ignoreDirectories?: string[]) =>
         Promise<{ success: boolean; files?: string[]; error?: string }>;
 
+    // UI Automation
+    uiAutomationConnect: (hostPort?: string) =>
+        Promise<{ success: boolean; error?: string }>;
+    uiAutomationLaunchBrowser: (url: string) =>
+        Promise<{ success: boolean; error?: string }>;
+    uiAutomationClick: (selector: string) =>
+        Promise<{ success: boolean; error?: string }>;
+    uiAutomationType: (selector: string, text: string) =>
+        Promise<{ success: boolean; error?: string }>;
+    uiAutomationWaitForElement: (selector: string, timeout?: number) =>
+        Promise<{ success: boolean; error?: string }>;
 
     restartApplication: () => Promise<{ success: boolean; error?: string }>;
     async
+
 
 }
 

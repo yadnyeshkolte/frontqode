@@ -8,6 +8,7 @@ import { setupLanguageServerHandlers } from './ipcHandlers/languageServerHandler
 import { setupGroqHandlers } from './ipcHandlers/groqHandlers';
 import { setupSystemHandlers } from './ipcHandlers/systemHandlers';
 import { setupSettingsHandlers } from './ipcHandlers/setupSettingsHandlers';
+import { setupUIAutomationHandlers } from './ipcHandlers/uiAutomationHandlers';
 import { setupApplicationMenu } from './menu';
 
 
@@ -80,7 +81,7 @@ setupLanguageServerHandlers();
 setupGroqHandlers();
 setupSystemHandlers();
 setupSettingsHandlers()
-
+setupUIAutomationHandlers();
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.

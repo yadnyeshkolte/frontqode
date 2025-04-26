@@ -5,13 +5,18 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    background-color: #1e3c72; /* Green background as requested */
+    background-image: url('../assets/images/background.webp'); /* Path to your WebP image */
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
     color: white;
 }
 
 .app-init-content {
     text-align: center;
     width: 400px;
+    padding: 2rem;
+
 }
 
 .app-init-content h1 {

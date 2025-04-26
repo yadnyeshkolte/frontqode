@@ -14,16 +14,21 @@ import { rendererConfig } from './webpack.renderer.config';
 const config: ForgeConfig = {
   packagerConfig: {
     asar: true,
+    icon: './assets/icons/icon',
   },
   rebuildConfig: {},
   makers: [
-    new MakerSquirrel({}),
+    new MakerSquirrel({
+      iconUrl: 'https://yadnyeshkolte.github.io/assets/icon.ico', // URL to ico file (for Windows)
+      setupIcon: './assets/icons/icon.ico',
+    }),
     new MakerZIP({}, ['darwin']),
     new MakerDeb({}),
     {
       name: '@electron-forge/maker-deb',
       config: {
         options: {
+          icon: './assets/icons/icon.png',
           maintainer: 'Yadnyesh Kolte',
           homepage: 'https://yadnyeshkolte.github.io',
         }

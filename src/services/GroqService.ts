@@ -1,8 +1,9 @@
-// src/services/GroqService.ts - Fixed version
+// src/services/GroqService.ts
 import axios from 'axios';
 import { app } from 'electron';
 import * as fs from 'fs';
 import * as path from 'path';
+import * as dotenv from 'dotenv';
 
 export interface GroqCompletionResponse {
     choices: {
@@ -22,21 +23,21 @@ export default class GroqService {
     private userApiKey: string | null = null;
     private baseUrl = 'https://api.groq.com/openai/v1';
     private readonly configPath: string;
-    // Always ensure we have a default API key
-    private readonly defaultApiKey: string = 'gsk_put_api_key_here';
+    private readonly defaultApiKey: string | null = null;
     private isUsingDefault = false;
 
     constructor() {
+        // Load environment variables from .env file
+        dotenv.config();
+
         // Default path for storing config
         this.configPath = path.join(
             app.getPath('userData'),
             'groq-config.json'
         );
 
-        // Try to get API key from environment variables first, fallback to hardcoded key
-        if (process.env.GROQ_API_KEY) {
-            this.defaultApiKey = process.env.GROQ_API_KEY;
-        }
+        // Try to get default API key from environment variables
+        this.defaultApiKey = process.env.GROQ_API_KEY || null;
 
         // Load saved configuration
         this.loadApiKey();
@@ -58,16 +59,20 @@ export default class GroqService {
                     this.apiKey = this.userApiKey;
                 }
             } else {
-                // If no saved config exists, use the default key
-                this.isUsingDefault = true;
-                this.apiKey = this.defaultApiKey;
-                this.saveApiKeyConfig();
+                // If no saved config exists, and we have a default key, use it
+                if (this.defaultApiKey) {
+                    this.isUsingDefault = true;
+                    this.apiKey = this.defaultApiKey;
+                    this.saveApiKeyConfig();
+                }
             }
         } catch (error) {
             console.error('Error loading API key:', error);
-            // Fallback to default key on error
-            this.isUsingDefault = true;
-            this.apiKey = this.defaultApiKey;
+            // Fallback to default key on error if available
+            if (this.defaultApiKey) {
+                this.isUsingDefault = true;
+                this.apiKey = this.defaultApiKey;
+            }
         }
     }
 
@@ -110,9 +115,14 @@ export default class GroqService {
 
     removeUserApiKey(): boolean {
         this.userApiKey = null;
-        // Always fall back to default key since we always have one
-        this.isUsingDefault = true;
-        this.apiKey = this.defaultApiKey;
+        // Automatically fall back to default key if available
+        if (this.defaultApiKey) {
+            this.isUsingDefault = true;
+            this.apiKey = this.defaultApiKey;
+        } else {
+            this.isUsingDefault = false;
+            this.apiKey = null;
+        }
         return this.saveApiKeyConfig();
     }
 
@@ -125,10 +135,10 @@ export default class GroqService {
     }
 
     hasDefaultApiKey(): boolean {
-        // We always have a default API key now
-        return true;
+        return this.defaultApiKey !== null;
     }
 
+// getCompletion to pass the model parameter
     async getCompletion(prompt: string, maxTokens = 2000, model = 'deepseek-r1-distill-llama-70b'): Promise<string> {
         return this.getChatCompletion([{ role: 'user', content: prompt }], maxTokens, model);
     }

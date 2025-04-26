@@ -37,7 +37,24 @@
 
 .ai-assistant-header h3 {
     margin: 0;
-    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.groq-logo {
+    margin-right: 4px;
+}
+
+.assistant-title {
+    color: #aaa; /* Orange color for the main title */
+}
+
+.groq-text {
+    font-size: 12px;
+    color:  #ff6b00;
+    font-weight: normal;
+    margin-right: 4px;
 }
 
 .ai-assistant-actions {

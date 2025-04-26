@@ -1,6 +1,6 @@
 // src/components/CloneRepoDialog/CloneRepoDialog.tsx
 import React, { useState, useEffect } from 'react';
-import '../../styles/CloneRepoDialog.css';
+import './CloneRepoDialog.css';
 
 interface CloneRepoDialogProps {
     isOpen: boolean;

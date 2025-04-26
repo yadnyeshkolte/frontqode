@@ -108,7 +108,7 @@ const AppStarter: React.FC<AppStarterProps> = ({
     return (
         <div className="app-starter-container">
             <div className="app-starter-content">
-                <h1>Front Qode IDE</h1>
+                <h1>Front Qode</h1>
                 <p>Choose an option to get started</p>
 
                 {error && <div className="error-message">{error}</div>}

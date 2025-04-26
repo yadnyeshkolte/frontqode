@@ -33,7 +33,7 @@ const AppInit: React.FC<AppInitProps> = ({ onComplete }) => {
         <div className="app-init-container">
             <div className="app-init-content">
                 <h1>Front Qode</h1>
-                <p>Starting up your cross-platform IDE experience</p>
+                <p>Starting up your cross-platform code editor</p>
 
                 <div className="progress-container">
                     <div

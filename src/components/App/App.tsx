@@ -256,7 +256,7 @@ const App: React.FC<AppProps> = ({ projectPath }) => {
     return (
         <div className="app-container">
             <div className="app-header">
-                <h1>Front Qode IDE - {projectName}</h1>
+                <h1>Front Qode - {projectName}</h1>
                 <div className="app-header-actions">
                     <div className="app-header-actions">
                         <button

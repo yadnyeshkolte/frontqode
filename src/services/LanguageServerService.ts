@@ -93,6 +93,108 @@ class LanguageServerService {
             args: ['--stdio'],
             binary: path.join(this.serversPath, 'node_modules', '.bin', 'pyright-langserver')
         });
+
+        // Java server - Eclipse JDT Language Server
+        this.serverConfigs.set('java', {
+            name: 'Java',
+            description: 'Language server for Java based on Eclipse JDT',
+            installCommand: 'npm install --prefix ' + this.serversPath + ' java-language-server',
+            startCommand: '',
+            args: ['--stdio'],
+            binary: path.join(this.serversPath, 'node_modules', '.bin', 'java-language-server')
+        });
+
+        // Kotlin server - Kotlin Language Server
+        this.serverConfigs.set('kotlin', {
+            name: 'Kotlin',
+            description: 'Language server for Kotlin',
+            installCommand: 'npm install --prefix ' + this.serversPath + ' kotlin-language-server',
+            startCommand: '',
+            args: ['--stdio'],
+            binary: path.join(this.serversPath, 'node_modules', '.bin', 'kotlin-language-server')
+        });
+
+        // C/C++ server - clangd
+        const cppConfig: ServerConfig = {
+            name: 'C/C++',
+            description: 'Language server for C and C++ based on clangd',
+            installCommand: 'npm install --prefix ' + this.serversPath + ' @clangd/clangd-extension',
+            startCommand: '',
+            args: ['--stdio'],
+            binary: path.join(this.serversPath, 'node_modules', '@clangd', 'clangd-extension', 'bin', 'clangd')
+        };
+        this.serverConfigs.set('cpp', cppConfig);
+        this.serverConfigs.set('c', cppConfig);
+
+        // Go server - gopls
+        this.serverConfigs.set('go', {
+            name: 'Go',
+            description: 'Language server for Go (gopls)',
+            installCommand: 'npm install --prefix ' + this.serversPath + ' vscode-go-langserver',
+            startCommand: '',
+            args: ['--stdio'],
+            binary: path.join(this.serversPath, 'node_modules', '.bin', 'gopls')
+        });
+
+        // Rust server - rust-analyzer
+        this.serverConfigs.set('rust', {
+            name: 'Rust',
+            description: 'Language server for Rust (rust-analyzer)',
+            installCommand: 'npm install --prefix ' + this.serversPath + ' rust-analyzer',
+            startCommand: '',
+            args: ['--stdio'],
+            binary: path.join(this.serversPath, 'node_modules', '.bin', 'rust-analyzer')
+        });
+
+        // PHP server - intelephense
+        this.serverConfigs.set('php', {
+            name: 'PHP',
+            description: 'Language server for PHP (intelephense)',
+            installCommand: 'npm install --prefix ' + this.serversPath + ' intelephense',
+            startCommand: '',
+            args: ['--stdio'],
+            binary: path.join(this.serversPath, 'node_modules', '.bin', 'intelephense')
+        });
+
+        // Ruby server - solargraph
+        this.serverConfigs.set('ruby', {
+            name: 'Ruby',
+            description: 'Language server for Ruby (solargraph)',
+            installCommand: 'npm install --prefix ' + this.serversPath + ' solargraph-utils',
+            startCommand: '',
+            args: ['--stdio'],
+            binary: path.join(this.serversPath, 'node_modules', '.bin', 'solargraph')
+        });
+
+        // Swift server - sourcekit-lsp
+        this.serverConfigs.set('swift', {
+            name: 'Swift',
+            description: 'Language server for Swift (sourcekit-lsp)',
+            installCommand: 'npm install --prefix ' + this.serversPath + ' sourcekit-lsp',
+            startCommand: '',
+            args: ['--stdio'],
+            binary: path.join(this.serversPath, 'node_modules', '.bin', 'sourcekit-lsp')
+        });
+
+        // Vue server
+        this.serverConfigs.set('vue', {
+            name: 'Vue',
+            description: 'Language server for Vue.js files',
+            installCommand: 'npm install --prefix ' + this.serversPath + ' vls',
+            startCommand: '',
+            args: ['--stdio'],
+            binary: path.join(this.serversPath, 'node_modules', '.bin', 'vls')
+        });
+
+        // YAML server
+        this.serverConfigs.set('yaml', {
+            name: 'YAML',
+            description: 'Language server for YAML files',
+            installCommand: 'npm install --prefix ' + this.serversPath + ' yaml-language-server',
+            startCommand: '',
+            args: ['--stdio'],
+            binary: path.join(this.serversPath, 'node_modules', '.bin', 'yaml-language-server')
+        });
     }
 
     public getAvailableServers(): Array<{ id: string, name: string, description: string, installed: boolean }> {

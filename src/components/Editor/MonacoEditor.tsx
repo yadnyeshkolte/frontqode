@@ -105,6 +105,24 @@ const MonacoEditor: React.FC<MonacoEditorProps> = ({
                 '.css': 'css',
                 '.json': 'json',
                 '.md': 'markdown',
+                // Add support for new languages
+                '.java': 'java',
+                '.kt': 'kotlin',
+                '.cpp': 'cpp',
+                '.c': 'c',
+                '.h': 'c',
+                '.hpp': 'cpp',
+                '.cc': 'cpp',
+                '.cxx': 'cpp',
+                '.go': 'go',
+                '.rs': 'rust',
+                '.php': 'php',
+                '.rb': 'ruby',
+                '.swift': 'swift',
+                '.vue': 'vue',
+                '.yaml': 'yaml',
+                '.yml': 'yaml',
+                '.py': 'python',
             };
 
             if (ext in languageMap) {
@@ -166,7 +184,12 @@ const MonacoEditor: React.FC<MonacoEditorProps> = ({
             );
 
             // Try to initialize LSP for supported languages
-            if (['typescript', 'javascript', 'html', 'css', 'json'].includes(language)) {
+            const supportedLanguages = [
+                'typescript', 'javascript', 'html', 'css', 'json', 'python',
+                'java', 'kotlin', 'cpp', 'c', 'go', 'rust', 'php', 'ruby', 'swift', 'vue', 'yaml'
+            ];
+
+            if (supportedLanguages.includes(language)) {
                 initLanguageServer(language, uri).then(() => {
                     //will add later when implementing Full LSP
                 });

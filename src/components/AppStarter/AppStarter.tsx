@@ -1,8 +1,13 @@
 // src/components/AppStarter/AppStarter.tsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import '../../styles/AppStarter.css';
 import ProjectDialog from '../ProjectDialog/ProjectDialog';
 import CloneRepoDialog from '../CloneRepoDialog/CloneRepoDialog';
+
+interface ProjectItem {
+    name: string;
+    path: string;
+}
 
 interface AppStarterProps {
     onNewProject: (projectPath: string) => void;
@@ -19,6 +24,43 @@ const AppStarter: React.FC<AppStarterProps> = ({
     const [isCloneRepoDialogOpen, setIsCloneRepoDialogOpen] = useState(false);
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [projects, setProjects] = useState<ProjectItem[]>([]);
+    const [projectsDir, setProjectsDir] = useState('');
+    const [selectedProject, setSelectedProject] = useState<string | null>(null);
+    const [hoveredProject, setHoveredProject] = useState<string | null>(null);
+
+    // Fetch projects on component mount
+    useEffect(() => {
+        loadProjects();
+    }, []);
+
+    const loadProjects = async () => {
+        try {
+            setIsLoading(true);
+
+            // Get projects directory
+            const dirResult = await window.electronAPI.getProjectsDir();
+            if (dirResult.success && dirResult.projectsDir) {
+                setProjectsDir(dirResult.projectsDir);
+            }
+
+            // List all projects
+            const result = await window.electronAPI.listProjects();
+            if (result.success && result.projects) {
+                const projectItems: ProjectItem[] = result.projects.map(name => ({
+                    name,
+                    path: `${dirResult.projectsDir}/${name}`
+                }));
+                setProjects(projectItems);
+            } else if (result.error) {
+                setError(result.error);
+            }
+        } catch (err) {
+            setError(err.message);
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     const handleNewProjectClick = () => {
         setIsProjectDialogOpen(true);
@@ -105,68 +147,125 @@ const AppStarter: React.FC<AppStarterProps> = ({
         }
     };
 
+    const handleProjectClick = (project: ProjectItem) => {
+        setSelectedProject(project.path);
+        onNewProject(project.path);
+    };
+
     return (
         <div className="app-starter-container">
-            <div className="app-starter-content">
-                <h1>Front Qode</h1>
-                <p>Choose an option to get started</p>
+            <div className="app-starter-wrapper">
+                <div className="app-starter-content">
+                    <div className="app-starter-header">
+                        <div className="logo-container">
+                            <h1>Front Qode</h1>
+                            <span className="logo-version">v1.0</span>
+                        </div>
+                        <p className="app-starter-subtitle">Modern Code Editor for Development</p>
 
-                {error && <div className="error-message">{error}</div>}
+                        {error && <div className="error-message">{error}</div>}
 
-                {isLoading && (
-                    <div className="loading-indicator">
-                        <div className="spinner"></div>
-                        <p>Processing...</p>
+                        {isLoading && (
+                            <div className="loading-indicator">
+                                <div className="spinner"></div>
+                                <p>Processing...</p>
+                            </div>
+                        )}
+
+                        <div className="starter-options">
+                            <button
+                                className="starter-button"
+                                onClick={handleNewProjectClick}
+                                disabled={isLoading}
+                            >
+                                <span className="starter-button-icon">+</span>
+                                <span className="starter-button-label">New Project</span>
+                            </button>
+
+                            <button
+                                className="starter-button"
+                                onClick={handleOpenProjectClick}
+                                disabled={isLoading}
+                            >
+                                <span className="starter-button-icon">📂</span>
+                                <span className="starter-button-label">Open Project</span>
+                            </button>
+
+                            <button
+                                className="starter-button"
+                                onClick={handleCloneRepoClick}
+                                disabled={isLoading}
+                            >
+                                <span className="starter-button-icon">📥</span>
+                                <span className="starter-button-label">Clone Repository</span>
+                            </button>
+
+                            <button className="starter-button starter-button-disabled">
+                                <span className="starter-button-icon">⚙️</span>
+                                <span className="starter-button-label">Customize</span>
+                            </button>
+                        </div>
                     </div>
-                )}
 
-                <div className="starter-options">
-                    <button
-                        className="starter-button"
-                        onClick={handleNewProjectClick}
-                        disabled={isLoading}
-                    >
-                        <span className="starter-button-icon">+</span>
-                        New Project
-                    </button>
-
-                    <button className="starter-button starter-button-disabled">
-                        <span className="starter-button-icon">⚙️</span>
-                        Customize
-                    </button>
-
-                    <button
-                        className="starter-button"
-                        onClick={handleOpenProjectClick}
-                        disabled={isLoading}
-                    >
-                        <span className="starter-button-icon">📂</span>
-                        Open Project
-                    </button>
-
-                    <button
-                        className="starter-button"
-                        onClick={handleCloneRepoClick}
-                        disabled={isLoading}
-                    >
-                        <span className="starter-button-icon">📥</span>
-                        Clone Repository
-                    </button>
+                    <div className="recent-projects-section">
+                        <div className="recent-projects-header">
+                            <h2>Recent Activity</h2>
+                        </div>
+                        <div className="recent-projects-placeholder">
+                            <p>Your recent projects will appear here</p>
+                        </div>
+                    </div>
                 </div>
 
-                <ProjectDialog
-                    isOpen={isProjectDialogOpen}
-                    onClose={handleProjectDialogClose}
-                    onConfirm={handleProjectCreate}
-                    title="Create New Project"
-                />
+                <div className="projects-explorer">
+                    <div className="projects-explorer-header">
+                        <h2>Projects Explorer</h2>
+                        <span className="projects-path">{projectsDir}</span>
+                    </div>
 
-                <CloneRepoDialog
-                    isOpen={isCloneRepoDialogOpen}
-                    onClose={handleCloneRepoDialogClose}
-                    onConfirm={handleRepoClone}
-                />
+                    <div className="projects-list-container">
+                        {projects.length > 0 ? (
+                            <ul className="projects-list">
+                                {projects.map((project) => (
+                                    <li
+                                        key={project.path}
+                                        className={`project-item ${selectedProject === project.path ? 'selected' : ''} ${hoveredProject === project.path ? 'hovered' : ''}`}
+                                        onClick={() => handleProjectClick(project)}
+                                        onMouseEnter={() => setHoveredProject(project.path)}
+                                        onMouseLeave={() => setHoveredProject(null)}
+                                    >
+                                        <span className="project-icon">📁</span>
+                                        <span className="project-name">{project.name}</span>
+                                    </li>
+                                ))}
+                            </ul>
+                        ) : (
+                            <div className="no-projects">
+                                <p>No projects found</p>
+                                <button
+                                    className="create-first-project-btn"
+                                    onClick={handleNewProjectClick}
+                                >
+                                    Create your first project
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                </div>
             </div>
+
+            <ProjectDialog
+                isOpen={isProjectDialogOpen}
+                onClose={handleProjectDialogClose}
+                onConfirm={handleProjectCreate}
+                title="Create New Project"
+            />
+
+            <CloneRepoDialog
+                isOpen={isCloneRepoDialogOpen}
+                onClose={handleCloneRepoDialogClose}
+                onConfirm={handleRepoClone}
+            />
         </div>
     );
 };

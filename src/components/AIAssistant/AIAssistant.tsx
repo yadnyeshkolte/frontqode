@@ -24,6 +24,14 @@ interface GroqModelInfo {
     tokensPerMinute: number;
 }
 
+interface GroqErrorResponse {
+    success: false;
+    error: string;
+    errorType?: 'connection' | 'api-key' | 'rate-limit' | 'token-limit' | 'server-error' | 'unknown';
+    details?: string;
+}
+
+
 const GROQ_MODELS: GroqModelInfo[] = [
     { id: 'deepseek-r1-distill-llama-70b', name: 'DeepSeek R1 Distill LLaMA 70B', tokensPerMinute: 6000 },
     { id: 'allam-2-7b', name: 'Allam 2 7B', tokensPerMinute: 6000 },
@@ -199,7 +207,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ isOpen, onClose, projectPath 
             }
         }
 
-        // Add the enhanced message to the chat
+        // Add the user message to the chat
         setMessages(prev => [...prev, { role: 'user', content: userMessage, id: userMessageId }]);
 
         try {
@@ -235,10 +243,43 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ isOpen, onClose, projectPath 
                 // Clear selected files after sending the message
                 setSelectedFiles([]);
             } else {
+                // Enhanced error handling - format user-friendly messages based on error type
+                const errorResponse = result as GroqErrorResponse;
                 const errorMessageId = generateId();
+
+                // Create an appropriate error message based on the error type
+                let userFriendlyError = '';
+
+                switch(errorResponse.errorType) {
+                    case 'connection':
+                        userFriendlyError = `**Network Error:** Unable to connect to the AI service. Please check your internet connection and try again.`;
+                        break;
+                    case 'api-key':
+                        userFriendlyError = `**API Key Error:** ${errorResponse.error || 'Theres an issue with your API key. Please check your settings.'}`;
+                        break;
+                        case 'rate-limit':
+                        userFriendlyError = `**Rate Limit Exceeded:** You've reached the usage limit. Please wait a moment before trying again.`;
+                    break;
+                    case 'token-limit':
+                    userFriendlyError = `**Content Too Large:** Your message or selected files exceed the size limit. Please try with a shorter message or fewer files.`;
+                    break;
+                    case 'server-error':
+                    userFriendlyError = `**Server Error:** The AI service is currently experiencing issues. Please try again later.`;
+                    break;
+                    default:
+                    userFriendlyError = `**Error:** ${errorResponse.error || 'An unexpected error occurred while processing your request.'}`;
+                    }
+            
+            // Add additional guidance for specific errors
+            if (errorResponse.errorType === 'token-limit') {
+                userFriendlyError += `\n\nTry removing some files from context or breaking your question into smaller parts.`;
+            } else if (errorResponse.errorType === 'connection') {
+                userFriendlyError += `\n\nMake sure you're connected to the internet, or try again later if the issue persists.`;
+                }
+
                 setMessages(prev => [...prev, {
                     role: 'assistant',
-                    content: `Error: ${result.error || 'Unknown error'}`,
+                    content: userFriendlyError,
                     id: errorMessageId
                 }]);
             }
@@ -246,7 +287,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ isOpen, onClose, projectPath 
             const errorMessageId = generateId();
             setMessages(prev => [...prev, {
                 role: 'assistant',
-                content: `Error: ${error.message}`,
+                content: `**Error:** ${error.message || 'An unknown error occurred while processing your request.'}`,
                 id: errorMessageId
             }]);
         } finally {

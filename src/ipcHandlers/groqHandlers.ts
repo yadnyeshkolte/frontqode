@@ -10,7 +10,13 @@ export const setupGroqHandlers = () => {
             const completion = await groqService.getCompletion(prompt, maxTokens, model);
             return { success: true, completion };
         } catch (error) {
-            return { success: false, error: error.message };
+            // Enhanced error handling
+            return {
+                success: false,
+                error: error.message,
+                errorType: error.errorType || 'unknown',
+                details: error.details
+            };
         }
     });
 
@@ -19,7 +25,13 @@ export const setupGroqHandlers = () => {
             const completion = await groqService.getChatCompletion(messages, maxTokens, model);
             return { success: true, completion };
         } catch (error) {
-            return { success: false, error: error.message };
+            // Enhanced error handling
+            return {
+                success: false,
+                error: error.message,
+                errorType: error.errorType || 'unknown',
+                details: error.details
+            };
         }
     });
 

@@ -1,5 +1,12 @@
 // src/types/electron.d.ts
 
+interface GroqError {
+    success: false;
+    error: string;
+    errorType?: 'connection' | 'api-key' | 'rate-limit' | 'token-limit' | 'server-error' | 'unknown';
+    details?: string;
+}
+
 interface TerminalOutput {
     id: string;
     timestamp: Date;
@@ -84,12 +91,12 @@ interface ElectronAPI {
     groqRemoveUserApiKey: () =>
         Promise<{ success: boolean; error?: string }>;
     groqGetCompletion: (prompt: string, maxTokens?: number, model?: string) =>
-        Promise<{ success: boolean; completion?: string; error?: string }>;
+        Promise<{ success: boolean; completion?: string; error?: string; errorType?: string; details?: string }>;
     groqGetChatCompletion: (messages: ({
         role: string;
         content: string
     })[], maxTokens?: number, model?: string) =>
-        Promise<{ success: boolean; completion?: string; error?: string }>;
+        Promise<{ success: boolean; completion?: string; error?: string; errorType?: string; details?: string }>;
 
     // Menu event listeners
     onMenuNewProject: (callback: () => void) => () => void;

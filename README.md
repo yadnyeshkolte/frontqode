@@ -58,13 +58,23 @@ Highlight the most important features of your project:
 - **Video Link:** [[YouTube](https://youtu.be/9m9UTx8AkoI)]  
 - **PPT Link:** [Paste Google Slides / PDF link here]  
 
+### Linux
+- [frontqode_1.0.0_amd64.deb](../releases/download/v1.0.0/frontqode_1.0.0_amd64.deb) (Debian/Ubuntu)
+
+### Windows
+- [frontqode-windows.zip](../releases/download/v1.0.0/frontqode-windows.zip)
+
+### macOS
+- [frontqode-darwin-arm64-1.0.0.zip](../releases/download/v1.0.0/frontqode-darwin-arm64-1.0.0.zip) (Apple Silicon)
+- [frontqode.app.zip](../releases/download/v1.0.0/frontqode.app.zip)
+
 ---
 
 ## ✅ Tasks & Bonus Checklist
 
-- [ ] **All members of the team completed the mandatory task - Followed at least 2 of our social channels and filled the form** (Details in Participant Manual)  
+- ✅ **All members of the team completed the mandatory task - Followed at least 2 of our social channels and filled the form** (Details in Participant Manual)  
 - [ ] **All members of the team completed Bonus Task 1 - Sharing of Badges and filled the form (2 points)**  (Details in Participant Manual)
-- [ ] **All members of the team completed Bonus Task 2 - Signing up for Sprint.dev and filled the form (3 points)**  (Details in Participant Manual)
+- ✅ **All members of the team completed Bonus Task 2 - Signing up for Sprint.dev and filled the form (3 points)**  (Details in Participant Manual)
 
 *(Mark with ✅ if completed)*
 

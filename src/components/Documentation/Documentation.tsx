@@ -279,8 +279,14 @@ const Documentation: React.FC<DocumentationProps> = ({ isOpen, onClose, projectP
     };
 
     const generateProjectDocs = async () => {
-        // Show chat overlay to get additional context before generating docs
-        setShowDocGenOverlay(true);
+        // If there's already an active document, we'll enhance that instead of creating a new one
+        if (currentDocPath) {
+            // Show chat overlay for additional context to enhance the current document
+            setShowDocGenOverlay(true);
+        } else {
+            // No active document, create a new one (original behavior)
+            setShowDocGenOverlay(true);
+        }
     };
 
     const selectCustomDocsFolder = async () => {
@@ -306,6 +312,7 @@ const Documentation: React.FC<DocumentationProps> = ({ isOpen, onClose, projectP
         }
     };
 
+    // Update the handleGenerateDocsWithContext function to use the current document if available
     const handleGenerateDocsWithContext = async (additionalContext: string) => {
         if (!projectPath) return;
 
@@ -314,8 +321,44 @@ const Documentation: React.FC<DocumentationProps> = ({ isOpen, onClose, projectP
             // First, scan project to get file structure (excluding node_modules, etc.)
             const projectFiles = await scanProject();
 
-            // Generate documentation using Groq
-            const prompt = `Generate comprehensive markdown documentation for a project with the following structure:
+            // Determine if we're enhancing an existing document or creating a new one
+            const isEnhancingExistingDoc = currentDocPath !== null;
+
+            // If enhancing existing doc, first get its content
+            let existingContent = '';
+            if (isEnhancingExistingDoc && currentDocPath) {
+                existingContent = docContent;
+            }
+
+            // Build a prompt based on whether we're enhancing or creating
+            let prompt = '';
+
+            if (isEnhancingExistingDoc) {
+                prompt = `Enhance the following existing documentation with additional details and improvements:
+
+Existing documentation:
+\`\`\`markdown
+${existingContent}
+\`\`\`
+
+Project structure:
+${projectFiles.map(file => `- ${file}`).join('\n')}
+
+${selectedFiles.length > 0 ? '\nHere are some key files with their content for context:' : ''}
+${selectedFiles.map(file => `
+File: ${file.path}
+\`\`\`
+${file.content}
+\`\`\`
+`).join('\n')}
+
+${additionalContext ? `\nAdditional instructions from user:\n${additionalContext}` : ''}
+
+Please improve the documentation by adding missing details, clarifying existing sections, fixing any issues, and ensuring it's well-structured. Maintain the overall format and organization of the existing document while enhancing it.
+`;
+            } else {
+                // Original prompt for creating new documentation
+                prompt = `Generate comprehensive markdown documentation for a project with the following structure:
     
 ${projectFiles.map(file => `- ${file}`).join('\n')}
 
@@ -332,21 +375,31 @@ ${additionalContext ? `\nAdditional context from user:\n${additionalContext}` : 
 Create a well-structured markdown document that includes:
 1. Project overview
 2. Main components/modules description 
-3. Architecture diagram (described in text)z
+3. Architecture diagram (described in text)
 4. Key functions and classes documentation
 5. Setup instructions based on visible configuration files
 `;
+            }
 
             const result = await window.electronAPI.groqGetCompletion(prompt, 50000);
 
             if (result.success && result.completion) {
-                // Create a main documentation file
-                const mainDocPath = path.join(projectPath, 'docs', 'project-documentation.md');
-                await window.electronAPI.writeFile(mainDocPath, result.completion);
+                let docPath;
 
-                // Refresh and open the new file
+                if (isEnhancingExistingDoc && currentDocPath) {
+                    // Use existing file path if enhancing
+                    docPath = currentDocPath;
+                } else {
+                    // Create a new documentation file
+                    docPath = path.join(projectPath, 'docs', 'project-documentation.md');
+                }
+
+                // Write the generated content to the file
+                await window.electronAPI.writeFile(docPath, result.completion);
+
+                // Refresh and open the file
                 await loadDocFiles();
-                openDocFile(mainDocPath);
+                openDocFile(docPath);
 
                 // Clear selected files after successful generation
                 clearSelectedFiles();
@@ -358,7 +411,9 @@ Create a well-structured markdown document that includes:
                 setAlertState({
                     isOpen: true,
                     title: 'Success',
-                    message: 'Project documentation has been generated successfully!',
+                    message: isEnhancingExistingDoc
+                        ? 'Documentation has been enhanced successfully!'
+                        : 'Project documentation has been generated successfully!',
                     type: 'success',
                     onConfirm: null
                 });
@@ -742,7 +797,7 @@ VERY IMPORTANT:
                                 title="Document Selected Code (Alt+D)"
                                 disabled={isProcessing}
                             >
-                                <span className="material-icons">code</span> Document Selection
+                                <span className="material-icons">code</span> AI-Inline Selection
                             </button>
                         )}
                         <button

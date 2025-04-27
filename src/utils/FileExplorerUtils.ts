@@ -20,7 +20,7 @@ export const defaultExpandedState = (item: FileTreeItem): boolean => {
     // Directories that should be collapsed by default
     const collapsedFolders: Record<string, string[]> = {
         // Java
-        "java": ["target", "bin", "build", ".gradle", ".mvn", "out", "classes", ".settings", ".classpath", ".project", ".idea", "logs"],
+        "java": ["target", "bin", "build", ".gradle", ".mvn", "out", "classes", ".settings", ".classpath", ".project", ".idea", "logs","res"],
         // Rust
         "rust": ["target", "debug", ".cargo", ".idea", ".vscode", "bin", "pkg", "web", "pkg-web"],
         // Ruby

@@ -12,6 +12,7 @@ export function getFileIconInfo(filePath: string): FileIconInfo {
         // Programming languages
         'java': { icon: 'code', cssClass: 'file-icon-java' },
         'js': { icon: 'javascript', cssClass: 'file-icon-js' },
+        'kt': { icon: 'code', cssClass: 'file-icon-kt' },
         'jsx': { icon: 'integration_instructions', cssClass: 'file-icon-jsx' },
         'ts': { icon: 'code', cssClass: 'file-icon-ts' },
         'tsx': { icon: 'integration_instructions', cssClass: 'file-icon-tsx' },

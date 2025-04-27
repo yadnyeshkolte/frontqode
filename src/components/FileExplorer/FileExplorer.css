@@ -144,6 +144,10 @@
     color: #007acc !important; /* TypeScript lighter blue */
 }
 
+.file-content .file-icon-kt {
+    color: #E24462 !important; /* TypeScript lighter blue */
+}
+
 .file-content .file-icon-html {
     color: #E44D26 !important; /* HTML orange */
 }

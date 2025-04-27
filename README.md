@@ -42,14 +42,15 @@ The cross-platform code editor solves context-switching between different tools 
 
 Highlight the most important features of your project:
 
-- ✅ Feature 1  
-- ✅ Feature 2  
-- ✅ Feature 3  
-- ✅ Feature 4
-- ✅ Feature 1  
-- ✅ Feature 2  
-- ✅ Feature 3  
-- ✅ Feature 4  
+- ✅ Documentation Generation - Automatically create comprehensive markdown documentation for code files
+- ✅ AI-Powered Code Assistant - Integration with Groq API for code completion and AI assistance
+- ✅ Multiple Language Support - Integrated language servers for numerous programming languages
+- ✅ Code Intelligence - Function/class extraction and analysis capabilities
+- ✅ UI Automation Tools - Interact with external applications for testing or demonstrations
+- ✅ File Context Selection - Select specific files to include in documentation or AI context
+- ✅ Directory Structure Visualization - View and navigate project file structure
+- ✅ Custom API Key Management - Securely store and manage API keys for external services
+- ✅ Cross-Platform Support - Works across different operating systems
 
 ---
 
@@ -73,58 +74,55 @@ Highlight the most important features of your project:
 ## ✅ Tasks & Bonus Checklist
 
 - ✅ **All members of the team completed the mandatory task - Followed at least 2 of our social channels and filled the form** (Details in Participant Manual)  
-- [ ] **All members of the team completed Bonus Task 1 - Sharing of Badges and filled the form (2 points)**  (Details in Participant Manual)
+-  [ ] **All members of the team completed Bonus Task 1 - Sharing of Badges and filled the form (2 points)**  (Details in Participant Manual)
 - ✅ **All members of the team completed Bonus Task 2 - Signing up for Sprint.dev and filled the form (3 points)**  (Details in Participant Manual)
-
-*(Mark with ✅ if completed)*
 
 ---
 
 ## 🧪 How to Run the Project
 
+**If possible download setup files, The Releases covers most OS Systems.**
+
 ### Requirements:
-- Node.js / Python / Docker / etc.
-- API Keys (if any)
-- .env file setup (if needed)
+- Node.js
+- API Keys (Added the feature, so that user can add his own API keys, no need .env file) {defaultApiKey: string = 'api key'}
+- .env file setup (GroqServiceEnv.ts -> GroqService.ts)
 
 ### Local Setup:
 ```bash
 # Clone the repo
-git clone https://github.com/your-team/project-name
+https://github.com/yadnyeshkolte/frontqode.git
 
 # Install dependencies
-cd project-name
+cd frontqode
 npm install
 
 # Start development server
-npm run dev
+npm start
 ```
-
-Provide any backend/frontend split or environment setup notes here.
-
 ---
 
 ## 🧬 Future Scope
 
 List improvements, extensions, or follow-up features:
 
-- 📈 More integrations  
-- 🛡️ Security enhancements  
-- 🌐 Localization / broader accessibility  
-
+Customizable themes and layouts
+- 📈 Platform & Integration Extensions  
+- 🛡️ Optimize startup time and resource usage  
+- 🌐 Integrate additional AI models beyond Groq  
+- 🛠️ Improve cross-platform terminal support (especially for macOS/Windows)
+- ✨ Add support for more language servers and LSP configurations
 ---
 
 ## 📎 Resources / Credits
 
-- APIs or datasets used  
-- Open source libraries or tools referenced  
-- Acknowledgements  
+- AI Assistant and Documentation AI editing - Backed by Groq  
+- Open source tools - Terminator, React.js, Node.js
 
 ---
 
 ## 🏁 Final Words
 
-Share your hackathon journey — challenges, learnings, fun moments, or shout-outs!
+This hackathon was an incredible experience featuring multiple challenges while offering valuable learning opportunities throughout the journey. I was introduced to new partner technologies and gained insight into their practical use cases. I've discovered effective ways to implement these technologies in my own applications, which will enhance my development process moving forward.
 
 ---
-](https://devfolio.co/projects/frontqode-fdc5)https://devfolio.co/projects/frontqode-fdc5https://devfolio.co/projects/frontqode-fdc5

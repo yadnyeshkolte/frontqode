@@ -2,7 +2,7 @@
   "name": "frontqode",
   "productName": "frontqode",
   "version": "1.0.0",
-  "description": "Cross-platform IDE built with Electron",
+  "description": "Cross-platform Code Editor",
   "main": ".webpack/main",
   "scripts": {
     "start": "electron-forge start",

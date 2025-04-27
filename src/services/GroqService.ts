@@ -31,7 +31,7 @@ export default class GroqService {
     private baseUrl = 'https://api.groq.com/openai/v1';
     private readonly configPath: string;
     // Always ensure we have a default API key
-    private readonly defaultApiKey: string = '';
+    private readonly defaultApiKey: string = 'api key';
     private isUsingDefault = false;
 
     // Custom friendly error messages

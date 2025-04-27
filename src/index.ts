@@ -1,4 +1,4 @@
-import { app, BrowserWindow } from 'electron';
+import { app, BrowserWindow, ipcMain } from 'electron';
 import { setupProjectHandlers } from './ipcHandlers/projectHandlers';
 import { setupGitHandlers } from './ipcHandlers/gitHandlers';
 import { setupFileHandlers } from './ipcHandlers/fileHandlers';
@@ -27,13 +27,26 @@ if (require('electron-squirrel-startup')) {
 // Keep a global reference of the mainWindow object
 let mainWindow: BrowserWindow | null = null;
 
-const createWindow = (): void => {
+// Setup all IPC handlers
+const setupIpcHandlers = () => {
+  setupProjectHandlers();
+  setupGitHandlers();
+  setupFileHandlers();
+  setupRecentFilesHandlers();
+  setupTerminalHandlers();
+  setupLanguageServerHandlers();
+  setupGroqHandlers();
+  setupSystemHandlers();
+  setupSettingsHandlers();
+  setupUIAutomationHandlers();
+};
 
+const createWindow = (): void => {
   // Create the browser window.
   mainWindow = new BrowserWindow({
     height: 900,
     width: 1600,
-    icon: path.join(__dirname, '../assets/icons/icon.png'), // Add this line
+    icon: path.join(__dirname, '../assets/icons/icon.png'),
     webPreferences: {
       preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
       contextIsolation: true,
@@ -41,9 +54,13 @@ const createWindow = (): void => {
     },
   });
 
-
   // Set up the application menu
-  setupApplicationMenu(mainWindow);
+  const { updateRecentProjects } = setupApplicationMenu(mainWindow);
+
+  // Update menu when recent files change
+  ipcMain.on('recent-files-updated', () => {
+    updateRecentProjects().catch(console.error);
+  });
 
   // Set CSP based on environment
   const isDev = process.env.NODE_ENV === 'development';
@@ -62,33 +79,46 @@ const createWindow = (): void => {
     });
   });
 
-  // and load the index.html of the app.
+  // Debug logging
+  mainWindow.webContents.on('did-finish-load', () => {
+    console.log('Window loaded successfully');
+  });
+
+  mainWindow.webContents.on('did-fail-load', (event, errorCode, errorDescription) => {
+    console.error('Failed to load window:', errorCode, errorDescription);
+  });
+
+  // Load the index.html of the app
   mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY).then(() => {
     console.log('Window loaded successfully');
+  }).catch(err => {
+    console.error('Failed to load window:', err);
   });
 
   // Open the DevTools in development mode
   if (isDev) {
     mainWindow.webContents.openDevTools();
   }
-};
 
-  // Set up all handlers
-setupProjectHandlers();
-setupGitHandlers();
-setupFileHandlers();
-setupRecentFilesHandlers();
-setupTerminalHandlers();
-setupLanguageServerHandlers();
-setupGroqHandlers();
-setupSystemHandlers();
-setupSettingsHandlers()
-setupUIAutomationHandlers();
+  // Handle window close
+  mainWindow.on('closed', () => {
+    mainWindow = null;
+  });
+};
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
-app.on('ready', createWindow);
+app.whenReady().then(() => {
+  // Setup IPC handlers before creating the window
+  setupIpcHandlers();
+
+  // Create window
+  createWindow();
+
+  // Log that the app is ready
+  console.log('Application is ready');
+});
 
 // Quit when all windows are closed, except on macOS. There, it's common
 // for applications and their menu bar to stay active until the user quits
@@ -107,5 +137,7 @@ app.on('activate', () => {
   }
 });
 
-// In this file you can include the rest of your app's specific main process
-// code. You can also put them in separate files and import them here.
+// Debugging for uncaught exceptions
+process.on('uncaughtException', (error) => {
+  console.error('Uncaught Exception:', error);
+});

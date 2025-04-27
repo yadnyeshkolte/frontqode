@@ -378,6 +378,20 @@ class FileSystemService {
             throw new Error(`Failed to clone repository: ${error.message}`);
         }
     }
+
+    async getRecentProjects() {
+        try {
+            const recentFilesPath = path.join(this.projectsDir, '.recent_projects');
+            if (fs.existsSync(recentFilesPath)) {
+                const data = fs.readFileSync(recentFilesPath, 'utf8');
+                return JSON.parse(data);
+            }
+            return [];
+        } catch (error) {
+            console.error('Error reading recent projects:', error);
+            return [];
+        }
+    }
 }
 
 export default FileSystemService;

@@ -29,6 +29,14 @@ const App: React.FC<AppProps> = ({ projectPath }) => {
     const [isAIAssistantOpen, setIsAIAssistantOpen] = useState<boolean>(false);
     const [isDocumentationOpen, setIsDocumentationOpen] = useState<boolean>(false);
     const [isUIAutomationOpen, setIsUIAutomationOpen] = useState<boolean>(false);
+    const path = window.require ? window.require('path') : require('path');
+
+    const getDisplayName = (filePath: string) => {
+        // Replace backslashes with forward slashes for consistency
+        const normalizedPath = filePath.replace(/\\/g, '/');
+        // Get the basename
+        return path.basename(normalizedPath);
+    };
 
     // Load project data when the project path changes
     useEffect(() => {
@@ -299,7 +307,7 @@ const App: React.FC<AppProps> = ({ projectPath }) => {
                             >
                                 <span onClick={() => openFile(file)}>
                                     {isDirty && activeFile === file ? '* ' : ''}
-                                    {path.basename(file)}
+                                    {getDisplayName(file)}
                                 </span>
                                 <span
                                     className="close-tab"

@@ -57,17 +57,17 @@ Highlight the most important features of your project:
 ## 📽️ Demo & Deliverables
 
 - **Video Link:** [[YouTube](https://youtu.be/9m9UTx8AkoI)]  
-- **PPT Link:** [Paste Google Slides / PDF link here]  
+- **PPT Link:** [[Drive](https://drive.google.com/drive/folders/1HbAYjnjr9zyRwAzjJutD-mmLc8MOa0VZ)]  
 
 ### Linux
-- [frontqode_1.0.0_amd64.deb](../releases/download/v1.0.0/frontqode_1.0.0_amd64.deb) (Debian/Ubuntu)
+- [frontqode_1.0.0_amd64.deb](https://github.com/yadnyeshkolte/frontqode/releases/download/v1.0.0/frontqode_1.0.0_amd64.deb) (Debian/Ubuntu)
 
 ### Windows
-- [frontqode-windows.zip](../releases/download/v1.0.0/frontqode-windows.zip)
+- [frontqode-windows.zip](https://github.com/yadnyeshkolte/frontqode/releases/download/v1.0.0/frontqode-windows.zip)
 
 ### macOS
-- [frontqode-darwin-arm64-1.0.0.zip](../releases/download/v1.0.0/frontqode-darwin-arm64-1.0.0.zip) (Apple Silicon)
-- [frontqode.app.zip](../releases/download/v1.0.0/frontqode.app.zip)
+- [frontqode-darwin-arm64-1.0.0.zip](https://github.com/yadnyeshkolte/frontqode/releases/download/v1.0.0/frontqode-darwin-arm64-1.0.0.zip) (Apple Silicon)
+- [frontqode.app.zip](https://github.com/yadnyeshkolte/frontqode/releases/download/v1.0.0/frontqode.app.zip)
 
 ---
 

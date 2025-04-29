@@ -66,7 +66,7 @@ Highlight the most important features of your project:
 
 ### Windows
 - [frontqode-windows-setup.zip](https://github.com/yadnyeshkolte/frontqode/releases/download/v1.0.0/frontqode-1.0.0-full-setup.zip) (Windows)
-- - [frontqode-1.0.0.Setup.exe](https://github.com/yadnyeshkolte/frontqode/releases/download/v1.0.0/frontqode-1.0.0.Setup.exe)
+- [frontqode-1.0.0.Setup.exe](https://github.com/yadnyeshkolte/frontqode/releases/download/v1.0.0/frontqode-1.0.0.Setup.exe)
 
 ### macOS
 - [frontqode-darwin-arm64-1.0.0.zip](https://github.com/yadnyeshkolte/frontqode/releases/download/v1.0.0/frontqode-darwin-arm64-1.0.0.zip) (Apple Silicon)

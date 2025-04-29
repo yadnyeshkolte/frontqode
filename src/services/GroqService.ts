@@ -3,7 +3,6 @@ import axios, { AxiosError } from 'axios';
 import { app } from 'electron';
 import * as fs from 'fs';
 import * as path from 'path';
-import * as dotenv from 'dotenv';
 
 export interface GroqCompletionResponse {
     choices: {
@@ -30,7 +29,7 @@ export default class GroqService {
     private userApiKey: string | null = null;
     private baseUrl = 'https://api.groq.com/openai/v1';
     private readonly configPath: string;
-    // Always ensure we have a default API key
+    // Hardcoded default API key - replace with your actual API key
     private readonly defaultApiKey: string = 'api key';
     private isUsingDefault = false;
 
@@ -48,19 +47,11 @@ export default class GroqService {
     };
 
     constructor() {
-        // Load environment variables from .env file
-        dotenv.config();
-
         // Default path for storing config
         this.configPath = path.join(
             app.getPath('userData'),
             'groq-config.json'
         );
-
-        // Try to get API key from environment variables first, fallback to hardcoded key
-        if (process.env.GROQ_API_KEY) {
-            this.defaultApiKey = process.env.GROQ_API_KEY;
-        }
 
         // Load saved configuration
         this.loadApiKey();

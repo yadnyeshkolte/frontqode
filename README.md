@@ -61,6 +61,7 @@ Highlight the most important features of your project:
 
 ### Linux
 - [frontqode_1.0.0_amd64.deb](https://github.com/yadnyeshkolte/frontqode/releases/download/v1.0.0/frontqode_1.0.0_amd64.deb) (Debian/Ubuntu)
+- [frontqode_1.0.0_1.x86_64.rpm)](https://github.com/yadnyeshkolte/frontqode/releases/download/v1.0.0/frontqode-1.0.0-1.x86_64.rpm) (RedHat/Fedora)
 
 ### Windows
 - [frontqode-windows.zip](https://github.com/yadnyeshkolte/frontqode/releases/download/v1.0.0/frontqode-windows.zip)
@@ -68,7 +69,7 @@ Highlight the most important features of your project:
 ### macOS
 - [frontqode-darwin-arm64-1.0.0.zip](https://github.com/yadnyeshkolte/frontqode/releases/download/v1.0.0/frontqode-darwin-arm64-1.0.0.zip) (Apple Silicon)
 - [frontqode.app.zip](https://github.com/yadnyeshkolte/frontqode/releases/download/v1.0.0/frontqode.app.zip)
-
+  
 ---
 
 ## ✅ Tasks & Bonus Checklist

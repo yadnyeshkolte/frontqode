@@ -1,12 +1,10 @@
 // Updated LSPWebSocketProxy.ts
 import * as WebSocket from 'ws';
 import { ChildProcess } from 'child_process';
-import * as http from 'http';
+import http = require('http')
 
 class LSPWebSocketProxy {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    private server: http.Server;
+    private server: http.Server<typeof http.IncomingMessage, typeof http.ServerResponse>;
     private wss: WebSocket.Server;
     private connections: Map<string, Set<WebSocket>> = new Map();
     private serverProcesses: Map<string, ChildProcess> = new Map();
@@ -87,7 +85,7 @@ class LSPWebSocketProxy {
     // Start the WebSocket proxy server
     public start(port: number): Promise<void> {
         return new Promise((resolve, reject) => {
-            this.server.listen(port, () => {
+            (this.server as any).listen(port, () => {
                 console.log(`LSP WebSocket proxy server listening on port ${port}`);
                 resolve();
             }).on('error', (error: any) => {
@@ -129,7 +127,7 @@ class LSPWebSocketProxy {
             }
 
             // Close the server
-            this.server.close(() => {
+            (this.server as any).close(() => {
                 console.log('LSP WebSocket proxy server stopped');
                 resolve();
             });

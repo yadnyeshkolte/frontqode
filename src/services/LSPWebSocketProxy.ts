@@ -82,7 +82,6 @@ class LSPWebSocketProxy {
         });
     }
 
-    // Start the WebSocket proxy server
     public start(port: number): Promise<void> {
         return new Promise((resolve, reject) => {
             (this.server as any).listen(port, () => {
@@ -90,7 +89,17 @@ class LSPWebSocketProxy {
                 resolve();
             }).on('error', (error: any) => {
                 console.error('Failed to start LSP WebSocket proxy server:', error);
-                reject(error);
+                // In production, try alternative port if the default is taken
+                if (process.env.NODE_ENV === 'production' && error.code === 'EADDRINUSE') {
+                    const fallbackPort = port + 1;
+                    console.log(`Attempting to use fallback port ${fallbackPort}`);
+                    (this.server as any).listen(fallbackPort, () => {
+                        console.log(`LSP WebSocket proxy server listening on fallback port ${fallbackPort}`);
+                        resolve();
+                    }).on('error', reject);
+                } else {
+                    reject(error);
+                }
             });
         });
     }

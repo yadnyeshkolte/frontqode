@@ -239,25 +239,37 @@ class LanguageServerService {
                 return null;
             }
 
+            // Adjust binary path for production
+            let binaryPath = config.binary;
+            if (process.env.NODE_ENV === 'production') {
+                // Check if path contains app.asar and replace with app.asar.unpacked
+                binaryPath = binaryPath.replace('app.asar', 'app.asar.unpacked');
+            }
+
             // Log more information to diagnose issues
             console.log(`Starting ${languageId} language server...`);
             console.log(`Binary path: ${config.binary}`);
             console.log(`Arguments: ${config.args.join(' ')}`);
 
             // Verify binary exists before attempting to spawn
-            if (!fs.existsSync(config.binary)) {
-                console.error(`Binary not found at path: ${config.binary}`);
+            if (!fs.existsSync(binaryPath)) {
+                console.error(`Binary not found at path: ${binaryPath}`);
                 return null;
             }
 
             // Allocate a port for web socket connection
             const port = this.nextPort++;
 
-            // Start server process with better error handling
+            // Start server process with adjusted path
             const serverProcess = spawn(config.binary, config.args, {
                 stdio: ['pipe', 'pipe', 'pipe'],
-                env: { ...process.env, NODE_ENV: process.env.NODE_ENV }
+                env: {
+                    ...process.env,
+                    NODE_ENV: process.env.NODE_ENV,
+                    ELECTRON_RUN_AS_NODE: '1'  // Help child process access files
+                }
             });
+
 
             // Handle server output
             serverProcess.stdout.on('data', (data) => {

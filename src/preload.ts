@@ -1,7 +1,6 @@
 // src/preload.ts
 import { contextBridge, ipcRenderer } from 'electron';
 import { setupMenuEvents } from './menuEvents';
-import os from 'os';
 
 // Expose protected methods that allow the renderer process to use
 // the ipcRenderer without exposing the entire object

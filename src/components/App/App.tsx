@@ -1,7 +1,6 @@
 // src/components/App/App.tsx
 import React, { useEffect, useState, useRef } from 'react';
 import '../../styles/App.css';
-import * as path from 'path';
 import Terminal from '../Terminal/Terminal';
 import FileExplorer from '../FileExplorer/FileExplorer';
 import MonacoEditor from '../Editor/MonacoEditor';

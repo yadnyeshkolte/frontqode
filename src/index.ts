@@ -10,6 +10,7 @@ import { setupSystemHandlers } from './ipcHandlers/systemHandlers';
 import { setupSettingsHandlers } from './ipcHandlers/setupSettingsHandlers';
 import { setupUIAutomationHandlers } from './ipcHandlers/uiAutomationHandlers';
 import { setupApplicationMenu } from './menu';
+import lspDebugger from './utils/lspDebugger';
 import path from 'path';
 
 
@@ -54,12 +55,18 @@ const createWindow = (): void => {
     },
   });
 
+  lspDebugger.log('Application starting');
+
+  lspDebugger.log('Application ready event fired');
+  lspDebugger.logEnvironmentPath();
+
   // Set up the application menu
   const { updateRecentProjects } = setupApplicationMenu(mainWindow);
 
   // Update menu when recent files change
   ipcMain.on('recent-files-updated', () => {
     updateRecentProjects().catch(console.error);
+
   });
 
   // Set CSP based on environment

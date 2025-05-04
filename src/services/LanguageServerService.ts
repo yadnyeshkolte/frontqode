@@ -217,10 +217,44 @@ class LanguageServerService {
         return result;
     }
 
+    /**
+     * Checks if we're running from an ASAR archive in production
+     */
+    private isRunningFromAsar(): boolean {
+        // Check if we're in production AND the app path contains 'app.asar'
+        return process.env.NODE_ENV === 'production' &&
+            ((__dirname || '').includes('app.asar') || process.resourcesPath?.includes('app.asar'));
+    }
+
+    /**
+     * Correctly resolves binary paths in both dev and production environments
+     */
+    private resolveBinaryPath(binaryPath: string): string {
+        // For Windows, append .cmd extension for npm binaries
+        if (process.platform === 'win32' && !binaryPath.endsWith('.exe') && !binaryPath.endsWith('.cmd')) {
+            // Check if .cmd version exists (most Node tools use .cmd on Windows)
+            const cmdPath = `${binaryPath}.cmd`;
+            if (fs.existsSync(cmdPath)) {
+                binaryPath = cmdPath;
+            }
+        }
+
+        // In production, replace app.asar with app.asar.unpacked in paths
+        if (this.isRunningFromAsar() && binaryPath.includes('app.asar')) {
+            binaryPath = binaryPath.replace('app.asar', 'app.asar.unpacked');
+            console.log(`Adjusted path for production: ${binaryPath}`);
+        }
+
+        return binaryPath;
+    }
+
     public isServerInstalled(languageId: string): boolean {
         const config = this.serverConfigs.get(languageId);
         if (!config) return false;
-        return fs.existsSync(config.binary);
+
+        // Ensure we check with the corrected binary path
+        const binaryPath = this.resolveBinaryPath(config.binary);
+        return fs.existsSync(binaryPath);
     }
 
     public async startServer(languageId: string): Promise<{ port: number, languageId: string } | null> {
@@ -246,17 +280,14 @@ class LanguageServerService {
                 return null;
             }
 
-            // Adjust binary path for production
-            let binaryPath = config.binary;
-            if (process.env.NODE_ENV === 'production') {
-                // Check if path contains app.asar and replace with app.asar.unpacked
-                binaryPath = binaryPath.replace('app.asar', 'app.asar.unpacked');
-            }
+            // Use corrected binary path for all environments
+            const binaryPath = this.resolveBinaryPath(config.binary);
 
             // Log more information to diagnose issues
             console.log(`Starting ${languageId} language server...`);
-            console.log(`Binary path: ${config.binary}`);
+            console.log(`Binary path: ${binaryPath}`);
             console.log(`Arguments: ${config.args.join(' ')}`);
+            console.log(`Running from ASAR: ${this.isRunningFromAsar()}`);
 
             // Verify binary exists before attempting to spawn
             if (!fs.existsSync(binaryPath)) {
@@ -264,19 +295,30 @@ class LanguageServerService {
                 return null;
             }
 
-            // Allocate a port for web socket connection
-            const port = this.nextPort++;
+            // For Windows, we might need to use different spawn options
+            const isWindows = process.platform === 'win32';
 
-            // Start server process with adjusted path
-            const serverProcess = spawn(config.binary, config.args, {
+            // Setup environment variables for the child process
+            const env = {
+                ...process.env,
+                NODE_ENV: process.env.NODE_ENV,
+                ELECTRON_RUN_AS_NODE: '1',  // Help child process access files
+                PATH: process.env.PATH      // Ensure PATH is passed to child process
+            };
+
+            // Choose spawn options based on platform and binary type
+            const spawnOptions: any = {
                 stdio: ['pipe', 'pipe', 'pipe'],
-                env: {
-                    ...process.env,
-                    NODE_ENV: process.env.NODE_ENV,
-                    ELECTRON_RUN_AS_NODE: '1'  // Help child process access files
-                }
-            });
+                env: env,
+            };
 
+            // On Windows, for .cmd files we need shell: true
+            if (isWindows && (binaryPath.endsWith('.cmd') || binaryPath.endsWith('.bat'))) {
+                spawnOptions.shell = true;
+            }
+
+            // Start server process with adjusted options
+            const serverProcess = spawn(binaryPath, config.args, spawnOptions);
 
             // Handle server output
             serverProcess.stdout.on('data', (data) => {
@@ -356,7 +398,10 @@ class LanguageServerService {
             console.log(`Running command: ${config.installCommand}`);
 
             return new Promise<boolean>((resolve, reject) => {
-                exec(config.installCommand, (error, stdout, stderr) => {
+                // For Windows, we may need to use shell: true for npm commands
+                const options = process.platform === 'win32' ? { shell: true } : {};
+
+                exec(config.installCommand, (error: { message: any; }, stdout: any, stderr: any) => {
                     if (error) {
                         console.error(`Installation error: ${error.message}`);
                         console.error(`stderr: ${stderr}`);

@@ -21,18 +21,57 @@
     "name": "yadnyeshkolte",
     "email": "yadnyeshkolte@gmail.com"
   },
-  "build": {
-    "appId": "com.frontqode.100",
-    "productName": "FrontQode",
-    "asarUnpack": [
-      "node_modules/**/*.node",
-      "node_modules/**/*.exe",
-      "node_modules/**/*.dll",
-      "node_modules/**/*.so",
-      "node_modules/**/bin/**",
-      "node_modules/**/build/Release/**"
-    ]
+  "directories": {
+    "output": "dist",
+    "buildResources": "build"
   },
+  "files": [
+    "package.json",
+    "build/**/*",
+    "node_modules/**/*",
+    "dist/**/*",
+    "src/**/*",
+    "!**/*.ts",
+    "!**/*.map",
+    "!node_modules/*/{CHANGELOG.md,README.md,README,readme.md,readme}",
+    "!node_modules/*/{test,__tests__,tests,powered-test,example,examples}",
+    "!node_modules/*.d.ts",
+    "!node_modules/.bin",
+    "!src/**/*.ts"
+  ],
+  "asarUnpack": [
+    "node_modules/**/*.node",
+    "node_modules/**/bin/**/*",
+    "node_modules/**/*.exe",
+    "node_modules/**/*.cmd",
+    "node_modules/**/*.sh",
+    "node_modules/**/*.dll"
+  ],
+  "win": {
+    "target": ["nsis"],
+    "icon": "build/icon.ico"
+  },
+  "mac": {
+    "target": ["dmg"],
+    "icon": "build/icon.icns",
+    "category": "public.app-category.developer-tools"
+  },
+  "linux": {
+    "target": ["AppImage", "deb"],
+    "icon": "build/icon.png",
+    "category": "Development"
+  },
+  "nsis": {
+    "oneClick": false,
+    "allowToChangeInstallationDirectory": true
+  },
+  "extraResources": [
+    {
+      "from": "resources/",
+      "to": "resources/",
+      "filter": ["**/*"]
+    }
+  ],
   "license": "Apache-2.0",
   "devDependencies": {
     "@electron-forge/cli": "^7.8.0",

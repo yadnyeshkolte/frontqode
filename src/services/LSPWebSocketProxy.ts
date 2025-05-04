@@ -2,6 +2,7 @@
 import * as WebSocket from 'ws';
 import { ChildProcess } from 'child_process';
 import http = require('http');
+import lspDebugger from '../utils/lspDebugger';
 
 export interface ProxyInfo {
     port: number;
@@ -22,6 +23,9 @@ class LSPWebSocketProxy {
 
         // Create WebSocket server
         this.wss = new WebSocket.Server({ server: this.server });
+
+        // Log initialization
+        lspDebugger.log('LSP WebSocket Proxy initialized');
 
         // Handle WebSocket connections
         this.wss.on('connection', (ws: WebSocket, req: http.IncomingMessage) => {
@@ -92,22 +96,33 @@ class LSPWebSocketProxy {
     public start(port: number): Promise<void> {
         return new Promise((resolve, reject) => {
             this.port = port;
+            lspDebugger.log(`Attempting to start LSP proxy on port ${port}`);
+
             (this.server as any).listen(port, () => {
                 console.log(`LSP WebSocket proxy server listening on port ${port}`);
+                lspDebugger.log(`LSP WebSocket proxy server started on port ${port}`);
                 this.status = 'running';
                 resolve();
             }).on('error', (error: any) => {
                 console.error('Failed to start LSP WebSocket proxy server:', error);
+                lspDebugger.logError(`Failed to start proxy on port ${port}: ${error.message}`);
+
                 // In production, try alternative port if the default is taken
                 if (process.env.NODE_ENV === 'production' && error.code === 'EADDRINUSE') {
                     const fallbackPort = port + 1;
+                    lspDebugger.log(`Attempting to use fallback port ${fallbackPort}`);
                     console.log(`Attempting to use fallback port ${fallbackPort}`);
+
                     (this.server as any).listen(fallbackPort, () => {
                         console.log(`LSP WebSocket proxy server listening on fallback port ${fallbackPort}`);
+                        lspDebugger.log(`LSP WebSocket proxy started successfully on fallback port ${fallbackPort}`);
                         this.port = fallbackPort;
                         this.status = 'running';
                         resolve();
-                    }).on('error', reject);
+                    }).on('error', (fallbackError: { message: any; }) => {
+                        lspDebugger.logError(`Failed to start on fallback port: ${fallbackError.message}`);
+                        reject(fallbackError);
+                    });
                 } else {
                     reject(error);
                 }

@@ -51,8 +51,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
     getAvailableLanguageServers: () => ipcRenderer.invoke('get-available-language-servers'),
     isLSPServerInstalled: (languageId: string) => ipcRenderer.invoke('is-lsp-server-installed', languageId),
     getLSPServerInfo: (languageId: string) => ipcRenderer.invoke('get-lsp-server-info', languageId),
+    startLSPServer: (languageId: string) => ipcRenderer.invoke('start-lsp-server', languageId),
     stopLSPServer: (languageId: string) => ipcRenderer.invoke('stop-lsp-server', languageId),
     installLSPServer: (languageId: string) => ipcRenderer.invoke('install-lsp-server', languageId),
+    getLSPProxyInfo: () => ipcRenderer.invoke('get-lsp-proxy-info'),
+
 
     groqGetCompletion: (prompt: string, maxTokens?: number, model?: string) =>
         ipcRenderer.invoke('groq-get-completion', prompt, maxTokens, model),

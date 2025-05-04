@@ -26,7 +26,7 @@ export const setupLanguageServerHandlers = () => {
     ipcMain.handle('get-lsp-server-info', async (_, languageId: string) => {
         try {
             // Check if server is running
-            let serverInfo = languageServerService.getServerInfo(languageId);
+            let serverInfo: { port: number; languageId: string } = languageServerService.getServerInfo(languageId);
 
             // Try to start server if it's not running but is installed
             if (!serverInfo && languageServerService.isServerInstalled(languageId)) {

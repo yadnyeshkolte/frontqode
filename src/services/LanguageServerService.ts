@@ -20,6 +20,13 @@ interface ServerConfig {
     binary: string;
 }
 
+export interface LanguageServerInfo {
+    id: string;
+    name: string;
+    description: string;
+    installed: boolean;
+}
+
 class LanguageServerService {
     private servers: Map<string, LanguageServer> = new Map();
     private serverConfigs: Map<string, ServerConfig> = new Map();
@@ -197,8 +204,8 @@ class LanguageServerService {
         });
     }
 
-    public getAvailableServers(): Array<{ id: string, name: string, description: string, installed: boolean }> {
-        const result = [];
+    public getAvailableServers(): LanguageServerInfo[] {
+        const result: LanguageServerInfo[] = [];
         for (const [languageId, config] of this.serverConfigs.entries()) {
             result.push({
                 id: languageId,
@@ -319,15 +326,21 @@ class LanguageServerService {
         this.servers.delete(languageId);
         return true;
     }
-    public getServerInfo(languageId: string): { port: number, languageId: string } | null {
+
+    public getServerInfo(languageId: string): { port: number, languageId: string, isInstalled: boolean } | null {
         const server = this.servers.get(languageId);
         if (!server) {
-            return null;
+            return {
+                port: this.proxyPort,
+                languageId,
+                isInstalled: this.isServerInstalled(languageId)
+            };
         }
 
         return {
             port: server.port,
-            languageId: server.languageId
+            languageId: server.languageId,
+            isInstalled: true
         };
     }
 

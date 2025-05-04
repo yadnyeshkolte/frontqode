@@ -1,13 +1,20 @@
 // Updated LSPWebSocketProxy.ts
 import * as WebSocket from 'ws';
 import { ChildProcess } from 'child_process';
-import http = require('http')
+import http = require('http');
+
+export interface ProxyInfo {
+    port: number;
+    status: 'running' | 'stopped';
+}
 
 class LSPWebSocketProxy {
-    private server: http.Server<typeof http.IncomingMessage, typeof http.ServerResponse>;
+    private readonly server: http.Server<typeof http.IncomingMessage, typeof http.ServerResponse>;
     private wss: WebSocket.Server;
     private connections: Map<string, Set<WebSocket>> = new Map();
     private serverProcesses: Map<string, ChildProcess> = new Map();
+    private port = 8080;
+    private status: 'running' | 'stopped' = 'stopped';
 
     constructor() {
         // Create HTTP server
@@ -84,8 +91,10 @@ class LSPWebSocketProxy {
 
     public start(port: number): Promise<void> {
         return new Promise((resolve, reject) => {
+            this.port = port;
             (this.server as any).listen(port, () => {
                 console.log(`LSP WebSocket proxy server listening on port ${port}`);
+                this.status = 'running';
                 resolve();
             }).on('error', (error: any) => {
                 console.error('Failed to start LSP WebSocket proxy server:', error);
@@ -95,6 +104,8 @@ class LSPWebSocketProxy {
                     console.log(`Attempting to use fallback port ${fallbackPort}`);
                     (this.server as any).listen(fallbackPort, () => {
                         console.log(`LSP WebSocket proxy server listening on fallback port ${fallbackPort}`);
+                        this.port = fallbackPort;
+                        this.status = 'running';
                         resolve();
                     }).on('error', reject);
                 } else {
@@ -102,6 +113,14 @@ class LSPWebSocketProxy {
                 }
             });
         });
+    }
+
+    // Get proxy information
+    public getProxyInfo(): ProxyInfo {
+        return {
+            port: this.port,
+            status: this.status
+        };
     }
 
     // Register a server process with the proxy
@@ -125,6 +144,11 @@ class LSPWebSocketProxy {
         });
     }
 
+    // Check if server is registered for a language
+    public isServerRegistered(languageId: string): boolean {
+        return this.serverProcesses.has(languageId);
+    }
+
     // Stop the WebSocket proxy server
     public stop(): Promise<void> {
         return new Promise((resolve) => {
@@ -138,6 +162,7 @@ class LSPWebSocketProxy {
             // Close the server
             (this.server as any).close(() => {
                 console.log('LSP WebSocket proxy server stopped');
+                this.status = 'stopped';
                 resolve();
             });
         });

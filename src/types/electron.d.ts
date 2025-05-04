@@ -20,6 +20,19 @@ interface PlatformInfo {
     version: string;   // OS version string
 }
 
+interface LanguageServerInfo {
+    id: string;
+    name: string;
+    description: string;
+    installed: boolean;
+}
+
+interface ProxyInfo {
+    port: number;
+    status: 'running' | 'stopped';
+}
+
+
 interface ElectronAPI {
     createProject: (projectName: string) => Promise<{ success: boolean; projectPath?: string; error?: string }>;
     openProjectDialog: () => Promise<{ success: boolean; projectPath?: string; error?: string }>;
@@ -63,10 +76,28 @@ interface ElectronAPI {
         Promise<{ success: boolean; history?: TerminalOutput[]; error?: string }>;
 
     // LSP operations
+    getAvailableLanguageServers: () => Promise<{
+        success: boolean;
+        servers?: LanguageServerInfo[];
+        error?: string
+    }>;
+    isLSPServerInstalled: (languageId: string) =>
+        Promise<{ success: boolean; installed?: boolean; error?: string }>;
     getLSPServerInfo: (languageId: string) =>
         Promise<{
+            success: boolean;
             isInstalled: boolean;
-            success: boolean; port?: number; languageId?: string; error?: string }>;
+            port?: number;
+            languageId?: string;
+            error?: string
+        }>;
+    startLSPServer: (languageId: string) =>
+        Promise<{
+            success: boolean;
+            port?: number;
+            languageId?: string;
+            error?: string
+        }>;
     stopLSPServer: (languageId: string) =>
         Promise<{ success: boolean; error?: string }>;
     installLSPServer: (languageId: string) =>
@@ -143,12 +174,6 @@ interface ElectronAPI {
     getRecentFiles: () => Promise<string[]>;
     addRecentFile: (filePath: string) => Promise<{ success: boolean }>;
     clearRecentFiles: () => Promise<{ success: boolean }>;
-
-    getAvailableLanguageServers: () => Promise<{
-        success: boolean;
-        servers?: never[]; // You might want to define a more specific type here
-        error?: string
-    }>;
 
     checkIfDirectoryExists: (dirPath: string) => Promise<{ exists: boolean; error?: string }>;
     listFilesInDirectory: (dirPath: string) => Promise<{ success: boolean; files?: string[]; error?: string }>;

@@ -2,7 +2,7 @@
 
 # 🚀 FrontQode
 
-> FrontQode - The Uninterrupted Development Experience.
+> FrontQode - The Uninterrupted Development Experience
 
 ---
 
